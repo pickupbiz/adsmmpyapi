@@ -44,6 +44,20 @@ class Settings(BaseSettings):
     DEFAULT_PAGE_SIZE: int = 20
     MAX_PAGE_SIZE: int = 100
     
+    # Email Notifications (disabled by default)
+    EMAIL_ENABLED: bool = False
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    FROM_EMAIL: str = "noreply@aerospace-materials.com"
+    FROM_NAME: str = "Aerospace Materials System"
+    
+    # Workflow Thresholds (USD)
+    PO_AUTO_APPROVE_THRESHOLD: float = 5000.0
+    PO_STANDARD_APPROVAL_THRESHOLD: float = 25000.0
+    PO_HIGH_VALUE_THRESHOLD: float = 100000.0
+    
     class Config:
         env_file = ".env"
         case_sensitive = True

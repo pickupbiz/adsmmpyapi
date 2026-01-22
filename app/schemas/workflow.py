@@ -184,3 +184,99 @@ class WorkflowApprovalResponse(BaseModel):
     updated_at: datetime
     
     model_config = ConfigDict(from_attributes=True)
+
+
+# =============================================================================
+# Enhanced Workflow Schemas for PO Integration
+# =============================================================================
+
+class POSubmitRequest(BaseModel):
+    """Schema for submitting PO for approval."""
+    notes: Optional[str] = None
+
+
+class POApprovalStatusResponse(BaseModel):
+    """Schema for PO approval status response."""
+    po_number: str
+    po_status: str
+    total_amount: float
+    currency: str
+    workflow: Optional[Dict[str, Any]] = None
+    history: List[Dict[str, Any]] = []
+
+
+class MaterialIssueSubmitRequest(BaseModel):
+    """Schema for submitting material issue for approval."""
+    notes: Optional[str] = None
+
+
+class QualityInspectionApproval(BaseModel):
+    """Schema for QA inspection approval."""
+    passed: bool
+    inspection_notes: str
+
+
+class PendingApprovalItem(BaseModel):
+    """Schema for a pending approval item."""
+    approval_id: int
+    instance_id: int
+    reference_type: str
+    reference_number: str
+    amount: float
+    currency: str
+    requested_at: datetime
+    priority: str
+
+
+class PendingPOItem(BaseModel):
+    """Schema for a pending PO item."""
+    id: int
+    po_number: str
+    total_amount: float
+    currency: str
+    created_at: datetime
+
+
+class PendingInspectionItem(BaseModel):
+    """Schema for a pending inspection item."""
+    id: int
+    item_number: str
+    material_id: int
+    quantity: float
+    received_date: Optional[datetime] = None
+
+
+class MyApprovalsResponse(BaseModel):
+    """Schema for my approvals dashboard."""
+    workflow_approvals: List[PendingApprovalItem] = []
+    pending_pos: List[PendingPOItem] = []
+    pending_inspections: List[PendingInspectionItem] = []
+    total_pending: int
+
+
+class AuditLogEntry(BaseModel):
+    """Schema for audit log entry."""
+    id: int
+    action: str
+    user: Optional[str] = None
+    description: Optional[str] = None
+    old_values: Optional[Dict[str, Any]] = None
+    new_values: Optional[Dict[str, Any]] = None
+    timestamp: datetime
+    ip_address: Optional[str] = None
+
+
+class ApprovalThresholds(BaseModel):
+    """Schema for approval thresholds configuration."""
+    low: float = 5000.0
+    standard: float = 25000.0
+    high: float = 100000.0
+    
+    
+class WorkflowInstanceDetailResponse(WorkflowInstanceResponse):
+    """Detailed workflow instance response with approvals."""
+    template_name: Optional[str] = None
+    requestor_name: Optional[str] = None
+    approvals: List[WorkflowApprovalResponse] = []
+    
+    model_config = ConfigDict(from_attributes=True)
