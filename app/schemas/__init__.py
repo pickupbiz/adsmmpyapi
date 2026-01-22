@@ -108,6 +108,22 @@ from app.schemas.material_instance import (
 # Common
 from app.schemas.common import PaginatedResponse, Message
 
+# Dashboard and Reports
+from app.schemas.dashboard import (
+    DashboardOverview, PODashboardSummary, MaterialDashboardSummary,
+    InventoryStatusSummary, POStatusCount, MaterialStatusCount,
+    POVsReceivedComparison, POLineComparison,
+    PODeliveryAnalytics, POToProductionLeadTime, LeadTimeReport,
+    SupplierPerformanceMetrics, SupplierRanking, SupplierAnalyticsReport,
+    ProjectPOConsumption, MaterialConsumptionItem, ProjectConsumptionReport,
+    MaterialMovementRecord, MaterialMovementHistory,
+    Alert, AlertSummary, AlertFilter, AlertType, AlertSeverity,
+    FastMovingMaterial, LowStockItem, StockAnalysisReport,
+    ReportFormat, DateRange, ReportRequest, ReportResponse,
+    POReportRequest, MaterialReportRequest, ProjectReportRequest, SupplierReportRequest,
+    WebSocketMessage, WebSocketMessageType
+)
+
 __all__ = [
     # User
     "UserCreate", "UserUpdate", "UserResponse", "UserLogin",
@@ -178,4 +194,17 @@ __all__ = [
     "MaterialLifecycleStatus", "MaterialCondition",
     # Common
     "PaginatedResponse", "Message",
+    # Dashboard and Reports
+    "DashboardOverview", "PODashboardSummary", "MaterialDashboardSummary",
+    "InventoryStatusSummary", "POStatusCount", "MaterialStatusCount",
+    "POVsReceivedComparison", "POLineComparison",
+    "PODeliveryAnalytics", "POToProductionLeadTime", "LeadTimeReport",
+    "SupplierPerformanceMetrics", "SupplierRanking", "SupplierAnalyticsReport",
+    "ProjectPOConsumption", "MaterialConsumptionItem", "ProjectConsumptionReport",
+    "MaterialMovementRecord", "MaterialMovementHistory",
+    "Alert", "AlertSummary", "AlertFilter", "AlertType", "AlertSeverity",
+    "FastMovingMaterial", "LowStockItem", "StockAnalysisReport",
+    "ReportFormat", "DateRange", "ReportRequest", "ReportResponse",
+    "POReportRequest", "MaterialReportRequest", "ProjectReportRequest", "SupplierReportRequest",
+    "WebSocketMessage", "WebSocketMessageType",
 ]
