@@ -145,16 +145,16 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 5055
 
 Once the application is running, access:
 
-- **Swagger UI**: http://localhost:8000/api/v1/docs
-- **ReDoc**: http://localhost:8000/api/v1/redoc
-- **OpenAPI JSON**: http://localhost:8000/api/v1/openapi.json
+- **Swagger UI**: http://localhost:5055/api/v1/docs
+- **ReDoc**: http://localhost:5055/api/v1/redoc
+- **OpenAPI JSON**: http://localhost:5055/api/v1/openapi.json
 
 ## Authentication
 
 ### Login
 
 ```bash
-curl -X POST "http://localhost:8000/api/v1/auth/login" \
+curl -X POST "http://localhost:5055/api/v1/auth/login" \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "username=admin@example.com&password=your_password"
 ```
@@ -173,7 +173,7 @@ Response:
 Include the access token in the Authorization header:
 
 ```bash
-curl -X GET "http://localhost:8000/api/v1/materials" \
+curl -X GET "http://localhost:5055/api/v1/materials" \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 ```
 
