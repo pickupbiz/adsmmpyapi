@@ -1,4 +1,4 @@
-"""SQLAlchemy Base class for models."""
+"""SQLAlchemy Base class for models with async support."""
 from sqlalchemy.orm import DeclarativeBase, declared_attr
 from sqlalchemy import MetaData
 
