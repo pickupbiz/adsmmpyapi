@@ -175,6 +175,17 @@ def create_material(
     if material_data.get("category_id") == 0:
         material_data["category_id"] = None
     
+    # Validate category exists if provided
+    if material_data.get("category_id"):
+        category = db.query(MaterialCategory).filter(
+            MaterialCategory.id == material_data["category_id"]
+        ).first()
+        if not category:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Category with ID {material_data['category_id']} does not exist. Create the category first using POST /api/v1/materials/categories"
+            )
+    
     material = Material(**material_data)
     db.add(material)
     db.commit()
@@ -201,6 +212,17 @@ def update_material(
     # Convert category_id=0 to None (no category)
     if update_data.get("category_id") == 0:
         update_data["category_id"] = None
+    
+    # Validate category exists if provided
+    if update_data.get("category_id"):
+        category = db.query(MaterialCategory).filter(
+            MaterialCategory.id == update_data["category_id"]
+        ).first()
+        if not category:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Category with ID {update_data['category_id']} does not exist"
+            )
     
     for field, value in update_data.items():
         setattr(material, field, value)

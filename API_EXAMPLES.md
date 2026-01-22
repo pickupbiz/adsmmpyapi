@@ -1566,14 +1566,401 @@ Authorization: Bearer <access_token>
 
 ---
 
+## Purchase Orders (Enhanced)
+
+The Purchase Order module provides complete lifecycle management from requisition to material receipt.
+
+### Quick Reference - PO Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/purchase-orders` | List POs with filters |
+| `GET` | `/purchase-orders/summary` | PO statistics |
+| `GET` | `/purchase-orders/{id}` | Get PO details |
+| `POST` | `/purchase-orders` | Create new PO |
+| `PUT` | `/purchase-orders/{id}` | Update draft PO |
+| `DELETE` | `/purchase-orders/{id}` | Delete draft PO |
+| `POST` | `/purchase-orders/{id}/items` | Add line item |
+| `PUT` | `/purchase-orders/{id}/items/{item_id}` | Update line item |
+| `DELETE` | `/purchase-orders/{id}/items/{item_id}` | Delete line item |
+| `POST` | `/purchase-orders/{id}/submit` | Submit for approval |
+| `POST` | `/purchase-orders/{id}/approve` | Approve/Reject PO |
+| `POST` | `/purchase-orders/{id}/order` | Mark as ordered |
+| `POST` | `/purchase-orders/{id}/cancel` | Cancel PO |
+| `GET` | `/purchase-orders/{id}/history` | Approval history |
+| `POST` | `/purchase-orders/{id}/receive` | Create GRN |
+| `GET` | `/purchase-orders/{id}/receipts` | List GRNs |
+| `GET` | `/purchase-orders/grn/{id}` | Get GRN |
+| `POST` | `/purchase-orders/grn/{id}/inspect` | Complete inspection |
+| `POST` | `/purchase-orders/grn/{id}/accept` | Accept to inventory |
+| `PUT` | `/purchase-orders/{id}/items/{item_id}/stage` | Update material stage |
+
+---
+
+### Material Lifecycle Flow
+
+```
+PO Created → Submitted → Approved → Ordered → Received → Inspected → Accepted to Inventory
+     ↓           ↓          ↓
+   Draft    Pending     Approved
+               ↓
+           Rejected/Returned
+```
+
+**Material Stages:** `on_order` → `in_inspection` → `raw_material` → `wip` → `finished_goods` → `consumed`
+
+---
+
+### Create Purchase Order
+```
+POST /api/v1/purchase-orders
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "supplier_id": 1,
+  "priority": "high",
+  "required_date": "2026-02-15",
+  "expected_delivery_date": "2026-02-10",
+  "tax_amount": 450.00,
+  "shipping_cost": 150.00,
+  "currency": "USD",
+  "shipping_method": "Air Freight",
+  "shipping_address": "1234 Factory Blvd, Warehouse A",
+  "requisition_number": "REQ-2026-001",
+  "project_reference": "PRJ-MLG-2026",
+  "work_order_reference": "WO-MLG-001",
+  "requires_certification": true,
+  "requires_inspection": true,
+  "payment_terms": "Net 30",
+  "delivery_terms": "FOB Origin",
+  "notes": "Urgent order for MLG production",
+  "line_items": [
+    {
+      "material_id": 1,
+      "quantity_ordered": 50.0,
+      "unit_of_measure": "kg",
+      "unit_price": 85.50,
+      "discount_percent": 5,
+      "required_date": "2026-02-15",
+      "specification": "AMS 4911",
+      "revision": "C",
+      "requires_certification": true,
+      "requires_inspection": true,
+      "notes": "Heat treated condition"
+    },
+    {
+      "material_id": 2,
+      "quantity_ordered": 100.0,
+      "unit_of_measure": "kg",
+      "unit_price": 12.75,
+      "discount_percent": 0,
+      "specification": "AMS 4045",
+      "notes": "T6 condition"
+    }
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "id": 1,
+  "po_number": "PO-20260122-A1B2C3",
+  "supplier_id": 1,
+  "created_by_id": 1,
+  "approved_by_id": null,
+  "status": "draft",
+  "priority": "high",
+  "po_date": "2026-01-22",
+  "required_date": "2026-02-15",
+  "subtotal": 5337.50,
+  "tax_amount": 450.00,
+  "shipping_cost": 150.00,
+  "discount_amount": 0,
+  "total_amount": 5937.50,
+  "currency": "USD",
+  "revision_number": 1,
+  "line_items": [
+    {
+      "id": 1,
+      "line_number": 1,
+      "material_id": 1,
+      "quantity_ordered": 50.0,
+      "quantity_received": 0,
+      "quantity_accepted": 0,
+      "unit_price": 85.50,
+      "discount_percent": 5,
+      "total_price": 4061.25,
+      "material_stage": "on_order"
+    }
+  ],
+  "created_at": "2026-01-22T10:00:00"
+}
+```
+
+**PO Status Values:** `draft`, `pending_approval`, `approved`, `rejected`, `ordered`, `partially_received`, `received`, `closed`, `cancelled`
+
+**PO Priority Values:** `low`, `normal`, `high`, `critical`, `aog` (Aircraft on Ground)
+
+---
+
+### List Purchase Orders
+```
+GET /api/v1/purchase-orders?page=1&page_size=20&status=pending_approval&priority=high
+Authorization: Bearer <access_token>
+```
+
+**Query Parameters:**
+- `status`: Filter by PO status
+- `priority`: Filter by priority
+- `supplier_id`: Filter by supplier
+- `from_date`: Filter by PO date (from)
+- `to_date`: Filter by PO date (to)
+- `search`: Search by PO number or requisition number
+
+---
+
+### Get PO Summary
+```
+GET /api/v1/purchase-orders/summary
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "total_pos": 150,
+  "draft_count": 12,
+  "pending_approval_count": 8,
+  "approved_count": 15,
+  "ordered_count": 45,
+  "received_count": 70,
+  "total_value": 1250000.00,
+  "pending_value": 185000.00
+}
+```
+
+---
+
+### Submit PO for Approval
+```
+POST /api/v1/purchase-orders/1/submit
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "id": 1,
+  "po_number": "PO-20260122-A1B2C3",
+  "status": "pending_approval",
+  ...
+}
+```
+
+---
+
+### Approve/Reject Purchase Order (Head of Ops/Director)
+```
+POST /api/v1/purchase-orders/1/approve
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Approve:**
+```json
+{
+  "action": "approved",
+  "comments": "Approved - within budget allocation"
+}
+```
+
+**Reject:**
+```json
+{
+  "action": "rejected",
+  "comments": "Pricing needs renegotiation with supplier"
+}
+```
+
+**Return for Revision:**
+```json
+{
+  "action": "returned",
+  "comments": "Please add backup supplier quote"
+}
+```
+
+> **Note:** POs over $10,000 require Director approval.
+
+---
+
+### Mark PO as Ordered
+```
+POST /api/v1/purchase-orders/1/order?tracking_number=TRK123456
+Authorization: Bearer <access_token>
+```
+
+---
+
+### Cancel Purchase Order
+```
+POST /api/v1/purchase-orders/1/cancel?reason=Project%20cancelled
+Authorization: Bearer <access_token>
+```
+
+---
+
+### Get PO Approval History
+```
+GET /api/v1/purchase-orders/1/history
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+[
+  {
+    "id": 3,
+    "purchase_order_id": 1,
+    "user_id": 2,
+    "action": "approved",
+    "from_status": "pending_approval",
+    "to_status": "approved",
+    "comments": "Approved - within budget",
+    "po_total_at_action": 5937.50,
+    "po_revision_at_action": 1,
+    "ip_address": "192.168.1.100",
+    "created_at": "2026-01-22T14:30:00"
+  },
+  {
+    "id": 2,
+    "purchase_order_id": 1,
+    "user_id": 1,
+    "action": "submitted",
+    "from_status": "draft",
+    "to_status": "pending_approval",
+    "comments": "Submitted for approval",
+    "created_at": "2026-01-22T10:00:00"
+  }
+]
+```
+
+---
+
+### Create Goods Receipt Note (Receive Materials)
+```
+POST /api/v1/purchase-orders/1/receive
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "purchase_order_id": 1,
+  "receipt_date": "2026-02-10",
+  "delivery_note_number": "DN-2026-001",
+  "invoice_number": "INV-2026-12345",
+  "carrier": "FedEx",
+  "tracking_number": "TRK123456789",
+  "packing_slip_received": true,
+  "coc_received": true,
+  "mtr_received": true,
+  "storage_location": "Warehouse-A",
+  "notes": "Received in good condition",
+  "line_items": [
+    {
+      "po_line_item_id": 1,
+      "quantity_received": 50.0,
+      "unit_of_measure": "kg",
+      "lot_number": "LOT-2026-001",
+      "batch_number": "BATCH-001",
+      "heat_number": "HT-45678",
+      "manufacture_date": "2026-01-15",
+      "expiry_date": "2028-01-15",
+      "storage_location": "Warehouse-A",
+      "bin_number": "A-12-03",
+      "notes": "Mill cert received"
+    }
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "id": 1,
+  "grn_number": "GRN-20260210-X1Y2Z3",
+  "purchase_order_id": 1,
+  "received_by_id": 3,
+  "status": "draft",
+  "receipt_date": "2026-02-10",
+  "line_items": [...]
+}
+```
+
+**GRN Status Values:** `draft`, `pending_inspection`, `inspection_passed`, `inspection_failed`, `accepted`, `rejected`, `partial`
+
+---
+
+### Complete QA Inspection (QA Role)
+```
+POST /api/v1/purchase-orders/grn/1/inspect?inspection_passed=true&inspection_notes=All%20materials%20meet%20spec
+Authorization: Bearer <access_token>
+```
+
+---
+
+### Accept GRN to Inventory (Store Role)
+```
+POST /api/v1/purchase-orders/grn/1/accept
+Authorization: Bearer <access_token>
+```
+
+This creates inventory records for all accepted materials.
+
+---
+
+### Update Material Lifecycle Stage
+```
+PUT /api/v1/purchase-orders/1/items/1/stage
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "material_stage": "wip",
+  "notes": "Moved to production floor for machining"
+}
+```
+
+**Material Stage Values:** `on_order`, `raw_material`, `in_inspection`, `wip`, `finished_goods`, `consumed`, `scrapped`
+
+**Valid Stage Transitions:**
+- `on_order` → `in_inspection`, `raw_material`
+- `in_inspection` → `raw_material`, `scrapped`
+- `raw_material` → `wip`, `consumed`
+- `wip` → `finished_goods`, `scrapped`
+- `finished_goods` → `consumed`, `scrapped`
+
+---
+
 ## Quick Reference - Status Values
 
 | Entity | Status Values |
 |--------|---------------|
-| **User Roles** | `director`, `head_of_operations`, `store`, `purchase`, `qa`, `engineer`, `technician`, `viewer` |
+| **User Roles** | `admin`, `director`, `head_of_operations`, `store`, `purchase`, `qa`, `engineer`, `technician`, `viewer` |
 | **Departments** | `OPERATIONS`, `PROCUREMENT`, `QUALITY_ASSURANCE`, `ENGINEERING`, `PRODUCTION`, `STORES`, `FINANCE`, `ADMINISTRATION` |
 | Material Type | `metal`, `composite`, `polymer`, `ceramic`, `alloy`, `coating`, `adhesive`, `other` |
 | Material Status | `active`, `discontinued`, `pending_approval`, `restricted` |
+| **Material Stage** | `on_order`, `in_inspection`, `raw_material`, `wip`, `finished_goods`, `consumed`, `scrapped` |
 | Part Status | `design`, `prototype`, `production`, `obsolete`, `restricted` |
 | Part Criticality | `critical`, `major`, `minor`, `standard` |
 | Supplier Status | `active`, `inactive`, `pending_approval`, `suspended`, `blacklisted` |
@@ -1584,6 +1971,10 @@ Authorization: Bearer <access_token>
 | Certification Status | `active`, `expired`, `pending`, `revoked`, `suspended` |
 | Order Status | `draft`, `pending_approval`, `approved`, `ordered`, `shipped`, `partially_received`, `received`, `cancelled`, `on_hold` |
 | Order Priority | `low`, `normal`, `high`, `critical`, `aog` |
+| **PO Status** | `draft`, `pending_approval`, `approved`, `rejected`, `ordered`, `partially_received`, `received`, `closed`, `cancelled` |
+| **PO Priority** | `low`, `normal`, `high`, `critical`, `aog` |
+| **GRN Status** | `draft`, `pending_inspection`, `inspection_passed`, `inspection_failed`, `accepted`, `rejected`, `partial` |
+| **Approval Action** | `submitted`, `approved`, `rejected`, `returned`, `cancelled` |
 
 ---
 
@@ -1599,10 +1990,27 @@ Authorization: Bearer <access_token>
 | **Suppliers** | Full | View | - | Full | View | View | - | View |
 | **Inventory** | Full | View | Full | View | View | View | View | View |
 | **Orders** | Full | Full | View | Full | - | - | - | View |
+| **Purchase Orders** | Full | Approve | Receive | Full | Inspect | - | - | View |
 | **Certifications** | Full | View | - | View | Full | View | - | View |
 | **Workflows** | Approve | Approve | - | - | Approve | - | - | - |
 | **Projects** | Full | Full | - | - | - | View | - | View |
 | **Audit Logs** | Full | View | - | - | - | - | - | - |
+
+### Purchase Order Workflow Permissions
+
+| Action | Required Role |
+|--------|---------------|
+| Create PO | Purchase, Head of Ops, Director |
+| Update Draft PO | Purchase, Head of Ops, Director |
+| Submit for Approval | Purchase, Head of Ops, Director |
+| Approve/Reject PO (<$10K) | Head of Ops, Director |
+| Approve/Reject PO (>$10K) | Director only |
+| Mark as Ordered | Purchase, Head of Ops, Director |
+| Cancel PO | Head of Ops, Director |
+| Receive Materials (Create GRN) | Store, Head of Ops, Director |
+| Inspect Materials | QA, Head of Ops, Director |
+| Accept to Inventory | Store, Head of Ops, Director |
+| Update Material Stage | Store, Head of Ops, Director |
 
 ### Authentication Flow
 
@@ -1751,6 +2159,350 @@ pm.collectionVariables.set("refresh_token", jsonData.refresh_token);
 | `POST` | `/orders/{id}/items` | Add order item | Yes (Purchase+) |
 | `PUT` | `/orders/{id}/items/{item_id}` | Update order item | Yes (Purchase+) |
 | `DELETE` | `/orders/{id}/items/{item_id}` | Delete order item | Yes (Purchase+) |
+
+### Material Instances (`/api/v1/material-instances`)
+
+Material instances track individual materials through their full lifecycle, integrated with Purchase Orders.
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `GET` | `/material-instances` | List material instances | Yes |
+| `GET` | `/material-instances/{id}` | Get instance details | Yes |
+| `POST` | `/material-instances` | Create instance (direct) | Yes (Store+) |
+| `PUT` | `/material-instances/{id}` | Update instance | Yes (Store+) |
+| `DELETE` | `/material-instances/{id}` | Delete instance | Yes (Engineer+) |
+| `POST` | `/material-instances/receive-from-grn` | Create from GRN | Yes (Store+) |
+| `POST` | `/material-instances/bulk-receive` | Bulk create from GRN | Yes (Store+) |
+| `POST` | `/material-instances/{id}/change-status` | Change lifecycle status | Yes (Store+) |
+| `POST` | `/material-instances/{id}/inspect` | Process QA inspection | Yes (QA+) |
+| `GET` | `/material-instances/{id}/history` | Get status history | Yes |
+| `GET` | `/material-instances/by-po/{po_id}` | Get materials by PO | Yes |
+| `GET` | `/material-instances/summary/by-status` | Inventory summary | Yes |
+| `GET` | `/material-instances/summary/project/{id}` | Project material summary | Yes |
+| `GET` | `/material-instances/lifecycle-report/{id}` | Full lifecycle report | Yes |
+
+#### Material Allocations
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `POST` | `/material-instances/allocations` | Create allocation | Yes (Store+) |
+| `GET` | `/material-instances/allocations` | List allocations | Yes |
+| `POST` | `/material-instances/allocations/{id}/issue` | Issue material | Yes (Store+) |
+| `POST` | `/material-instances/allocations/{id}/return` | Return material | Yes (Store+) |
+| `DELETE` | `/material-instances/allocations/{id}` | Cancel allocation | Yes (Store+) |
+
+#### BOM Source Tracking
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `POST` | `/material-instances/bom-sources` | Create BOM source tracking | Yes (Engineer+) |
+| `GET` | `/material-instances/bom-sources` | List BOM sources | Yes |
+| `PUT` | `/material-instances/bom-sources/{id}` | Update BOM source | Yes (Engineer+) |
+
+---
+
+## Material Instance Examples
+
+### 1. Create Material Instance (Direct Entry)
+
+```http
+POST /api/v1/material-instances
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "title": "Titanium Sheet Ti-6Al-4V",
+  "material_id": 1,
+  "supplier_id": 1,
+  "specification": "AMS 4911",
+  "revision": "C",
+  "quantity": 100.0,
+  "unit_of_measure": "kg",
+  "unit_cost": 85.50,
+  "lot_number": "LOT-2026-001",
+  "batch_number": "BATCH-001",
+  "heat_number": "HT-2026-0001",
+  "condition": "new",
+  "manufacture_date": "2025-12-15",
+  "expiry_date": "2028-12-15",
+  "storage_location": "Warehouse A",
+  "bin_number": "A-12-03",
+  "certificate_number": "CERT-2026-001",
+  "notes": "Premium aerospace grade titanium"
+}
+```
+
+### 2. Receive Materials from GRN (PO Integration)
+
+```http
+POST /api/v1/material-instances/receive-from-grn
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "grn_line_item_id": 1,
+  "title": "Titanium Alloy Ti-6Al-4V from PO",
+  "specification": "AMS 4911",
+  "revision": "C",
+  "lot_number": "LOT-2026-002",
+  "batch_number": "BATCH-002",
+  "heat_number": "HT-2026-0002",
+  "manufacture_date": "2025-12-20",
+  "expiry_date": "2028-12-20",
+  "storage_location": "Warehouse A",
+  "bin_number": "A-12-04",
+  "certificate_number": "CERT-2026-002",
+  "notes": "Received against PO-2026-001"
+}
+```
+
+### 3. Change Material Status
+
+```http
+POST /api/v1/material-instances/1/change-status
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "new_status": "in_inspection",
+  "reason": "QC inspection required",
+  "reference_type": "GRN",
+  "reference_number": "GRN-2026-001",
+  "notes": "Standard receiving inspection"
+}
+```
+
+**Valid Status Transitions:**
+- `ordered` → `received`
+- `received` → `in_inspection`, `in_storage`
+- `in_inspection` → `in_storage` (passed), `rejected` (failed)
+- `in_storage` → `reserved`, `issued`, `scrapped`, `returned`
+- `reserved` → `issued`, `in_storage` (release)
+- `issued` → `in_production`, `in_storage` (return)
+- `in_production` → `completed`, `scrapped`
+
+### 4. Inspect Material (QA Role)
+
+```http
+POST /api/v1/material-instances/1/inspect
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "inspection_passed": true,
+  "inspection_notes": "All parameters within spec. Approved for use.",
+  "storage_location": "Warehouse A",
+  "bin_number": "A-12-05"
+}
+```
+
+**For rejection:**
+```json
+{
+  "inspection_passed": false,
+  "inspection_notes": "Hardness out of spec",
+  "rejection_reason": "Hardness value 42 HRC exceeds max 40 HRC"
+}
+```
+
+### 5. Allocate Material to Project
+
+```http
+POST /api/v1/material-instances/allocations
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "material_instance_id": 1,
+  "project_id": 1,
+  "quantity_allocated": 25.0,
+  "unit_of_measure": "kg",
+  "required_date": "2026-02-15",
+  "priority": 2,
+  "notes": "For MLG production batch 1"
+}
+```
+
+### 6. Issue Allocated Material
+
+```http
+POST /api/v1/material-instances/allocations/1/issue
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "quantity_to_issue": 10.0,
+  "notes": "Issued to production floor, WO-2026-001"
+}
+```
+
+### 7. Return Issued Material
+
+```http
+POST /api/v1/material-instances/allocations/1/return
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "quantity_to_return": 2.5,
+  "reason": "Excess material from production",
+  "notes": "Material in good condition, returned to storage"
+}
+```
+
+### 8. Create BOM Source Tracking
+
+```http
+POST /api/v1/material-instances/bom-sources
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "bom_id": 1,
+  "bom_item_id": 1,
+  "purchase_order_id": 1,
+  "po_line_item_id": 1,
+  "quantity_required": 50.0,
+  "unit_of_measure": "kg",
+  "required_date": "2026-02-28",
+  "notes": "Source tracking for MLG BOM"
+}
+```
+
+### 9. Get Materials by Purchase Order
+
+```http
+GET /api/v1/material-instances/by-po/1
+Authorization: Bearer <token>
+```
+
+### 10. Get Inventory Summary by Status
+
+```http
+GET /api/v1/material-instances/summary/by-status
+Authorization: Bearer <token>
+```
+
+**Response:**
+```json
+[
+  {
+    "status": "in_storage",
+    "count": 45,
+    "total_quantity": 1250.5,
+    "total_value": 85750.25
+  },
+  {
+    "status": "reserved",
+    "count": 12,
+    "total_quantity": 350.0,
+    "total_value": 28750.00
+  },
+  {
+    "status": "in_inspection",
+    "count": 5,
+    "total_quantity": 125.0,
+    "total_value": 10625.00
+  }
+]
+```
+
+### 11. Get Project Material Summary
+
+```http
+GET /api/v1/material-instances/summary/project/1
+Authorization: Bearer <token>
+```
+
+### 12. Get Material Lifecycle Report
+
+```http
+GET /api/v1/material-instances/lifecycle-report/1
+Authorization: Bearer <token>
+```
+
+**Response:**
+```json
+{
+  "material_instance_id": 1,
+  "item_number": "MI-202601-00001",
+  "title": "Titanium Sheet Ti-6Al-4V",
+  "current_status": "in_storage",
+  "po_number": "PO-2026-001",
+  "supplier_name": "Aerospace Metals Inc.",
+  "order_date": "2026-01-15",
+  "received_date": "2026-01-22",
+  "days_in_current_status": 5,
+  "status_history": [
+    {
+      "id": 3,
+      "from_status": "in_inspection",
+      "to_status": "in_storage",
+      "changed_by_name": "QA Inspector",
+      "reference_type": "INSPECTION",
+      "reason": "Inspection completed",
+      "created_at": "2026-01-23T10:30:00Z"
+    },
+    {
+      "id": 2,
+      "from_status": "received",
+      "to_status": "in_inspection",
+      "changed_by_name": "Store Manager",
+      "reference_type": "GRN",
+      "reference_number": "GRN-2026-001",
+      "created_at": "2026-01-22T14:00:00Z"
+    },
+    {
+      "id": 1,
+      "from_status": null,
+      "to_status": "received",
+      "changed_by_name": "Store Manager",
+      "notes": "Received from PO PO-2026-001",
+      "created_at": "2026-01-22T12:00:00Z"
+    }
+  ]
+}
+```
+
+### 13. List Material Instances with Filters
+
+```http
+# Get all available materials in storage
+GET /api/v1/material-instances?lifecycle_status=in_storage&available_only=true
+
+# Search by lot number
+GET /api/v1/material-instances?search=LOT-2026
+
+# Filter by supplier and material
+GET /api/v1/material-instances?supplier_id=1&material_id=1
+
+# Get materials from specific PO
+GET /api/v1/material-instances?purchase_order_id=1
+```
+
+---
+
+## Material Lifecycle Workflow
+
+The material lifecycle with PO integration follows this flow:
+
+```
+PO Created → Material ORDERED
+    ↓
+GRN Created → Material RECEIVED
+    ↓
+QA Inspection → IN_INSPECTION
+    ↓
+Pass → IN_STORAGE | Fail → REJECTED
+    ↓
+Allocate to Project → RESERVED
+    ↓
+Issue to Production → ISSUED
+    ↓
+Use in Manufacturing → IN_PRODUCTION
+    ↓
+Finish Production → COMPLETED | Scrap → SCRAPPED
+```
 
 ---
 
