@@ -2506,6 +2506,411 @@ Finish Production → COMPLETED | Scrap → SCRAPPED
 
 ---
 
+## 12. Barcode Management with PO Integration
+
+### Barcode Endpoints Reference
+
+| Method | Endpoint | Description | Required Role |
+|--------|----------|-------------|---------------|
+| GET | `/barcodes` | List barcodes with filtering | Any role |
+| GET | `/barcodes/{id}` | Get barcode by ID | Any role |
+| GET | `/barcodes/lookup/{value}` | Look up barcode by value | Any role |
+| POST | `/barcodes` | Create barcode | Store |
+| PUT | `/barcodes/{id}` | Update barcode | Store |
+| DELETE | `/barcodes/{id}` | Void barcode | Engineer |
+| POST | `/barcodes/generate` | Generate new barcode | Store |
+| POST | `/barcodes/generate-from-po` | Generate barcode from PO | Store |
+| POST | `/barcodes/scan` | Process barcode scan | Any role |
+| POST | `/barcodes/scan-to-receive` | Scan-to-receive against PO | Store |
+| POST | `/barcodes/validate` | Validate barcode against PO | Any role |
+| POST | `/barcodes/create-wip` | Create WIP barcode | Store |
+| POST | `/barcodes/create-finished-goods` | Create finished goods barcode | Store |
+| GET | `/barcodes/{id}/traceability` | Get traceability chain | Any role |
+| GET | `/barcodes/{id}/scan-history` | Get scan history | Any role |
+| GET | `/barcodes/{id}/image` | Get barcode image | - |
+| GET | `/barcodes/{id}/qr` | Get QR code image | - |
+| GET | `/barcodes/summary/by-stage` | Summary by traceability stage | Any role |
+| GET | `/barcodes/summary/by-po/{id}` | Summary by PO | Any role |
+
+### Generate Barcode from PO Line Item
+
+```http
+POST /api/v1/barcodes/generate-from-po
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "po_line_item_id": 1,
+    "grn_line_item_id": 1,
+    "lot_number": "LOT-2026-001",
+    "batch_number": "BATCH-001",
+    "heat_number": "HT-123456",
+    "quantity": 100.0,
+    "manufacture_date": "2026-01-15",
+    "expiry_date": "2028-01-15",
+    "storage_location": "Warehouse A, Rack 12",
+    "bin_number": "A12-001",
+    "barcode_type": "qr_code",
+    "notes": "First batch received"
+}
+```
+
+**Response:**
+```json
+{
+    "barcode_id": 1,
+    "barcode_value": "RM-PO2026001-260123-00001",
+    "barcode_type": "qr_code",
+    "qr_data": {
+        "v": 1,
+        "bc": "RM-PO2026001-260123-00001",
+        "ts": "2026-01-23T10:30:00.000000",
+        "po": "PO-2026-001",
+        "pn": "MAT-001",
+        "name": "Aluminum Sheet 6061-T6",
+        "spec": "0.125\" x 48\" x 96\"",
+        "lot": "LOT-2026-001",
+        "heat": "HT-123456",
+        "qty": 100.0,
+        "uom": "sheets",
+        "supplier": "Aerospace Metals Inc.",
+        "mfg": "2026-01-15",
+        "exp": "2028-01-15",
+        "stage": "received"
+    },
+    "qr_data_encoded": "eyJ2IjoxLCJiYyI6IlJNLVBPMjAyNjAwMS0yNjAxMjMtMDAwMDEiLC4uLn0=",
+    "barcode_image_base64": "<base64_encoded_code128>",
+    "qr_image_base64": "<base64_encoded_qr>"
+}
+```
+
+### Scan-to-Receive Against PO
+
+```http
+POST /api/v1/barcodes/scan-to-receive
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "barcode_value": "RM-PO2026001-260123-00001",
+    "purchase_order_id": 1,
+    "po_line_item_id": 1,
+    "grn_id": 1,
+    "quantity_received": 50.0,
+    "storage_location": "Warehouse A, Rack 12",
+    "bin_number": "A12-001",
+    "validate_po": true,
+    "notes": "Partial receipt - 50 of 100 units"
+}
+```
+
+**Response:**
+```json
+{
+    "id": 1,
+    "barcode_label_id": 1,
+    "scanned_by": 2,
+    "scanned_by_name": "John Store Keeper",
+    "scan_timestamp": "2026-01-23T10:35:00.000000+00:00",
+    "scan_location": "Warehouse A, Rack 12",
+    "scan_action": "po_receipt",
+    "purchase_order_id": 1,
+    "grn_id": 1,
+    "quantity_scanned": 50.0,
+    "quantity_before": 100.0,
+    "quantity_after": 100.0,
+    "status_before": "active",
+    "status_after": "active",
+    "stage_before": "received",
+    "stage_after": "received",
+    "location_from": null,
+    "location_to": "Warehouse A, Rack 12",
+    "is_successful": true,
+    "error_message": null,
+    "validation_result": {
+        "is_valid": true,
+        "checks": {
+            "po_match": true,
+            "quantity_valid": true,
+            "not_expired": true
+        }
+    },
+    "reference_type": "PO",
+    "reference_number": "PO-2026-001"
+}
+```
+
+### Process General Barcode Scan
+
+```http
+POST /api/v1/barcodes/scan
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "barcode_value": "RM-PO2026001-260123-00001",
+    "scan_action": "issue",
+    "scan_location": "Production Floor",
+    "scan_device": "Handheld Scanner #5",
+    "quantity": 25.0,
+    "new_location": "Machine Shop",
+    "reference_type": "WO",
+    "reference_number": "WO-2026-015",
+    "notes": "Issued for Work Order WO-2026-015"
+}
+```
+
+**Supported scan_action values:**
+- `po_receipt` - Receive material against PO
+- `inspection` - QC inspection scan
+- `issue` - Issue to production
+- `wip_start` - Start WIP processing
+- `wip_complete` - Complete WIP stage
+- `transfer` - Transfer location
+- `inventory` - Inventory count
+
+### Validate Barcode Against PO
+
+```http
+POST /api/v1/barcodes/validate
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "barcode_value": "RM-PO2026001-260123-00001",
+    "purchase_order_id": 1,
+    "po_line_item_id": 1,
+    "expected_material_id": 1,
+    "expected_quantity": 50.0
+}
+```
+
+**Response:**
+```json
+{
+    "is_valid": true,
+    "barcode_found": true,
+    "barcode_active": true,
+    "po_match": true,
+    "material_match": true,
+    "quantity_valid": true,
+    "not_expired": true,
+    "barcode_id": 1,
+    "barcode_status": "active",
+    "po_number": "PO-2026-001",
+    "material_part_number": "MAT-001",
+    "current_quantity": 100.0,
+    "errors": [],
+    "warnings": [],
+    "checks": {
+        "po_match": true,
+        "material_match": true,
+        "quantity_valid": true,
+        "not_expired": true
+    }
+}
+```
+
+### Create WIP Barcode (Raw Material → Work in Progress)
+
+```http
+POST /api/v1/barcodes/create-wip
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "parent_barcode_id": 1,
+    "work_order_reference": "WO-2026-015",
+    "quantity_used": 10.0,
+    "unit_of_measure": "sheets",
+    "operation": "Machining",
+    "station": "CNC-01",
+    "notes": "Cut to size for fuselage panel"
+}
+```
+
+**Response:**
+```json
+{
+    "barcode_id": 2,
+    "barcode_value": "WIP-260123-00001",
+    "barcode_type": "qr_code",
+    "qr_data": {
+        "v": 1,
+        "bc": "WIP-260123-00001",
+        "ts": "2026-01-23T11:00:00.000000",
+        "po": "PO-2026-001",
+        "pn": "MAT-001",
+        "name": "Aluminum Sheet 6061-T6",
+        "lot": "LOT-2026-001",
+        "heat": "HT-123456",
+        "qty": 10.0,
+        "uom": "sheets",
+        "stage": "in_production",
+        "parent": "RM-PO2026001-260123-00001",
+        "extra": {"wo": "WO-2026-015"}
+    }
+}
+```
+
+### Create Finished Goods Barcode
+
+```http
+POST /api/v1/barcodes/create-finished-goods
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "parent_barcode_ids": [2, 3, 4],
+    "part_number": "ASSY-PANEL-001",
+    "part_name": "Fuselage Panel Assembly",
+    "serial_number": "SN-2026-00001",
+    "work_order_reference": "WO-2026-015",
+    "project_reference": "PROJ-2026-001",
+    "notes": "Completed assembly with QA inspection"
+}
+```
+
+**Response:**
+```json
+{
+    "barcode_id": 5,
+    "barcode_value": "FG-SN202600001-00001",
+    "barcode_type": "qr_code",
+    "qr_data": {
+        "v": 1,
+        "bc": "FG-SN202600001-00001",
+        "ts": "2026-01-23T14:00:00.000000",
+        "pn": "ASSY-PANEL-001",
+        "name": "Fuselage Panel Assembly",
+        "sn": "SN-2026-00001",
+        "stage": "completed",
+        "wo": "WO-2026-015",
+        "materials": ["WIP-260123-00001", "WIP-260123-00002", "WIP-260123-00003"]
+    }
+}
+```
+
+### Get Full Traceability Chain
+
+```http
+GET /api/v1/barcodes/5/traceability
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+{
+    "barcode_id": 5,
+    "barcode_value": "FG-SN202600001-00001",
+    "chain_length": 3,
+    "chain": [
+        {
+            "barcode_id": 5,
+            "barcode_value": "FG-SN202600001-00001",
+            "entity_type": "finished_goods",
+            "traceability_stage": "completed",
+            "po_number": "PO-2026-001",
+            "material_part_number": "ASSY-PANEL-001",
+            "lot_number": null,
+            "quantity": 1.0,
+            "created_at": "2026-01-23T14:00:00.000000+00:00"
+        },
+        {
+            "barcode_id": 2,
+            "barcode_value": "WIP-260123-00001",
+            "entity_type": "wip",
+            "traceability_stage": "consumed",
+            "po_number": "PO-2026-001",
+            "material_part_number": "MAT-001",
+            "lot_number": "LOT-2026-001",
+            "quantity": 0.0,
+            "created_at": "2026-01-23T11:00:00.000000+00:00"
+        },
+        {
+            "barcode_id": 1,
+            "barcode_value": "RM-PO2026001-260123-00001",
+            "entity_type": "raw_material",
+            "traceability_stage": "consumed",
+            "po_number": "PO-2026-001",
+            "material_part_number": "MAT-001",
+            "lot_number": "LOT-2026-001",
+            "quantity": 0.0,
+            "created_at": "2026-01-23T10:30:00.000000+00:00"
+        }
+    ],
+    "source_po_number": "PO-2026-001",
+    "source_supplier": "Aerospace Metals Inc.",
+    "finished_goods_serial": "SN-2026-00001"
+}
+```
+
+### Get Barcode/QR Code Images
+
+```http
+# Get Code128 barcode image
+GET /api/v1/barcodes/1/image?format=png
+
+# Get QR code image with embedded data
+GET /api/v1/barcodes/1/qr?format=png&size=10
+```
+
+### Barcode Traceability Flow
+
+```
+Purchase Order Created
+    ↓
+PO Line Items → Material ordered
+    ↓
+GRN Created → Material received
+    ↓
+Generate Barcode (RM-xxx) → Raw Material barcode with PO reference
+    ↓
+QC Inspection Scan → Stage: INSPECTED
+    ↓
+Storage Scan → Stage: IN_STORAGE, Location updated
+    ↓
+Issue to Production → Create WIP Barcode (WIP-xxx)
+    │                   └── Parent: RM-xxx (PO traceability preserved)
+    ↓
+WIP Processing → Stage: IN_PRODUCTION
+    ↓
+Complete Manufacturing → Create FG Barcode (FG-xxx)
+    │                      └── Parents: [WIP-xxx...] (Full traceability)
+    ↓
+Finished Goods → Stage: COMPLETED
+    │              └── Full chain: FG → WIP → RM → PO
+    ↓
+Ship to Customer → Stage: SHIPPED
+```
+
+### QR Code Data Structure
+
+The QR code contains JSON data with the following fields:
+
+| Field | Description | Example |
+|-------|-------------|---------|
+| `v` | Version | `1` |
+| `bc` | Barcode value | `"RM-PO2026001-260123-00001"` |
+| `ts` | Timestamp | `"2026-01-23T10:30:00"` |
+| `po` | PO number | `"PO-2026-001"` |
+| `pn` | Part number | `"MAT-001"` |
+| `name` | Material name | `"Aluminum Sheet"` |
+| `spec` | Specification | `"0.125\" x 48\""` |
+| `lot` | Lot number | `"LOT-2026-001"` |
+| `batch` | Batch number | `"BATCH-001"` |
+| `heat` | Heat number | `"HT-123456"` |
+| `qty` | Quantity | `100.0` |
+| `uom` | Unit of measure | `"sheets"` |
+| `supplier` | Supplier name | `"Aerospace Metals"` |
+| `mfg` | Manufacture date | `"2026-01-15"` |
+| `exp` | Expiry date | `"2028-01-15"` |
+| `stage` | Current stage | `"received"` |
+| `parent` | Parent barcode | `"RM-xxx"` (for WIP/FG) |
+| `materials` | Source materials | `["WIP-xxx"]` (for FG) |
+
+---
+
 ## Common Errors & Solutions
 
 | Error | Cause | Solution |
