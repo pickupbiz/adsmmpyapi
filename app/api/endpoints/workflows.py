@@ -9,7 +9,7 @@ Provides:
 - Audit trail logging
 - Email notifications
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from sqlalchemy.orm import Session, joinedload
@@ -1003,24 +1003,22 @@ def approve_quality_inspection(
     if not instance:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Material instance not found")
     
-    if instance.status != MaterialLifecycleStatus.IN_INSPECTION:
+    if instance.lifecycle_status != MaterialLifecycleStatus.IN_INSPECTION:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Material is not in inspection status (current: {instance.status.value})"
+            detail=f"Material is not in inspection status (current: {instance.lifecycle_status.value})"
         )
     
-    old_status = instance.status.value
+    old_status = instance.lifecycle_status
     
     if passed:
-        instance.status = MaterialLifecycleStatus.IN_STORAGE
-        instance.is_inspected = True
-        instance.inspection_date = datetime.utcnow()
-        instance.inspection_result = "passed"
+        instance.lifecycle_status = MaterialLifecycleStatus.IN_STORAGE
+        instance.inspection_passed = True
+        instance.inspection_date = date.today()
     else:
-        instance.status = MaterialLifecycleStatus.REJECTED
-        instance.is_inspected = True
-        instance.inspection_date = datetime.utcnow()
-        instance.inspection_result = "failed"
+        instance.lifecycle_status = MaterialLifecycleStatus.REJECTED
+        instance.inspection_passed = False
+        instance.inspection_date = date.today()
     
     instance.inspection_notes = inspection_notes
     instance.inspected_by_id = current_user.id
@@ -1029,18 +1027,18 @@ def approve_quality_inspection(
     status_history = MaterialStatusHistory(
         material_instance_id=instance.id,
         from_status=old_status,
-        to_status=instance.status.value,
+        to_status=instance.lifecycle_status,
         changed_by_id=current_user.id,
         reason=inspection_notes,
-        extra_data={"inspection_passed": passed}
+        notes=f"Inspection {'passed' if passed else 'failed'}"
     )
     db.add(status_history)
     
     log_audit(
         db, current_user, "INSPECT", "material_instance", instance.id,
         f"QA inspection {'passed' if passed else 'failed'}: {inspection_notes}",
-        old_values={"status": old_status},
-        new_values={"status": instance.status.value, "passed": passed},
+        old_values={"status": old_status.value},
+        new_values={"status": instance.lifecycle_status.value, "passed": passed},
         request=request
     )
     
@@ -1096,7 +1094,7 @@ def get_my_pending_approvals(
     pending_inspections = []
     if current_user.role == UserRole.QA:
         pending_inspections = db.query(MaterialInstance).filter(
-            MaterialInstance.status == MaterialLifecycleStatus.IN_INSPECTION
+            MaterialInstance.lifecycle_status == MaterialLifecycleStatus.IN_INSPECTION
         ).all()
     
     return {

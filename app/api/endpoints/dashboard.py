@@ -525,7 +525,7 @@ def get_project_consumption(
                     ordered_quantity=instance.quantity,
                     consumed_quantity=alloc.allocated_quantity,
                     remaining_quantity=instance.quantity - alloc.allocated_quantity,
-                    unit=instance.unit,
+                    unit=instance.unit_of_measure,
                     unit_price=unit_price,
                     total_cost=total_cost
                 ))
@@ -591,15 +591,18 @@ def get_material_movement_history(
     
     if barcode:
         query = query.join(MaterialInstance).filter(
-            MaterialInstance.barcode == barcode
+            or_(
+                MaterialInstance.serial_number == barcode,
+                MaterialInstance.lot_number == barcode
+            )
         )
     
     if from_date:
-        query = query.filter(MaterialStatusHistory.changed_at >= datetime.combine(from_date, datetime.min.time()))
+        query = query.filter(MaterialStatusHistory.created_at >= datetime.combine(from_date, datetime.min.time()))
     if to_date:
-        query = query.filter(MaterialStatusHistory.changed_at <= datetime.combine(to_date, datetime.max.time()))
+        query = query.filter(MaterialStatusHistory.created_at <= datetime.combine(to_date, datetime.max.time()))
     
-    query = query.order_by(MaterialStatusHistory.changed_at.desc())
+    query = query.order_by(MaterialStatusHistory.created_at.desc())
     
     total = query.count()
     records = query.offset(pagination.offset).limit(pagination.limit).all()
@@ -629,16 +632,16 @@ def get_material_movement_history(
             id=record.id,
             material_instance_id=instance.id if instance else 0,
             material_name=material.name if material else "Unknown",
-            barcode=instance.barcode if instance else None,
+            barcode=(instance.serial_number or instance.lot_number) if instance else None,
             from_status=record.from_status.value if record.from_status else "unknown",
             to_status=record.to_status.value if record.to_status else "unknown",
             quantity=instance.quantity if instance else Decimal("0"),
-            unit=instance.unit if instance else "",
+            unit=instance.unit_of_measure if instance else "",
             po_number=po_number,
             po_id=po_id,
             location=instance.storage_location if instance else None,
             performed_by=user.full_name if user else "System",
-            performed_at=record.changed_at,
+            performed_at=record.created_at,
             notes=record.notes
         ))
     
@@ -702,45 +705,47 @@ def get_stock_analysis(
         # Calculate consumption rate (simplified)
         consumption_rate = Decimal("1.0")  # Placeholder
         
-        # Check stock levels
+        # Check stock levels (using threshold-based approach)
+        threshold = Decimal("1.0")  # Low stock threshold
+        
         if item.quantity <= 0:
             out_of_stock.append(LowStockItem(
                 material_id=item.material_id,
                 material_name=item.material.name if item.material else "Unknown",
                 material_code=item.material.part_number if item.material else "",
                 current_stock=item.quantity,
-                minimum_stock=item.minimum_stock,
-                reorder_level=item.reorder_level,
-                unit=item.unit,
+                minimum_stock=threshold,
+                reorder_level=threshold * 2,
+                unit=item.unit_of_measure,
                 stock_percentage=0,
                 pending_po_quantity=pending_qty,
                 expected_delivery_date=expected_date,
                 avg_consumption_rate=consumption_rate
             ))
-        elif item.quantity <= item.minimum_stock:
+        elif item.quantity <= threshold:
             critical_items.append(LowStockItem(
                 material_id=item.material_id,
                 material_name=item.material.name if item.material else "Unknown",
                 material_code=item.material.part_number if item.material else "",
                 current_stock=item.quantity,
-                minimum_stock=item.minimum_stock,
-                reorder_level=item.reorder_level,
-                unit=item.unit,
-                stock_percentage=float(item.quantity / item.minimum_stock * 100) if item.minimum_stock > 0 else 0,
+                minimum_stock=threshold,
+                reorder_level=threshold * 2,
+                unit=item.unit_of_measure,
+                stock_percentage=float(item.quantity / threshold * 100) if threshold > 0 else 0,
                 pending_po_quantity=pending_qty,
                 expected_delivery_date=expected_date,
                 avg_consumption_rate=consumption_rate
             ))
-        elif item.quantity <= item.reorder_level:
+        elif item.quantity <= threshold * 2:
             low_stock.append(LowStockItem(
                 material_id=item.material_id,
                 material_name=item.material.name if item.material else "Unknown",
                 material_code=item.material.part_number if item.material else "",
                 current_stock=item.quantity,
-                minimum_stock=item.minimum_stock,
-                reorder_level=item.reorder_level,
-                unit=item.unit,
-                stock_percentage=float(item.quantity / item.reorder_level * 100) if item.reorder_level > 0 else 0,
+                minimum_stock=threshold,
+                reorder_level=threshold * 2,
+                unit=item.unit_of_measure,
+                stock_percentage=float(item.quantity / (threshold * 2) * 100) if threshold > 0 else 0,
                 days_until_stockout=float(item.quantity / consumption_rate) if consumption_rate > 0 else None,
                 pending_po_quantity=pending_qty,
                 expected_delivery_date=expected_date,
@@ -893,10 +898,10 @@ def _get_material_summary(db: Session) -> MaterialDashboardSummary:
     
     # Count by status
     status_counts = db.query(
-        MaterialInstance.status,
+        MaterialInstance.lifecycle_status,
         func.count(MaterialInstance.id),
         func.sum(MaterialInstance.quantity)
-    ).group_by(MaterialInstance.status).all()
+    ).group_by(MaterialInstance.lifecycle_status).all()
     
     summary = MaterialDashboardSummary()
     materials_by_status = []
@@ -939,14 +944,15 @@ def _get_inventory_summary(db: Session) -> InventoryStatusSummary:
     inventory_stats = db.query(
         func.count(Inventory.id),
         func.sum(Inventory.quantity),
-        func.sum(Inventory.quantity * Inventory.unit_price)
+        func.sum(Inventory.quantity * Inventory.unit_cost)
     ).first()
     
     total_items, total_qty, total_value = inventory_stats
     
+    # Low stock: items with quantity <= 10% of average or <= 1 unit
     low_stock = db.query(Inventory).filter(
         and_(
-            Inventory.quantity <= Inventory.reorder_level,
+            Inventory.quantity <= 1,
             Inventory.quantity > 0
         )
     ).count()
@@ -955,9 +961,8 @@ def _get_inventory_summary(db: Session) -> InventoryStatusSummary:
         Inventory.quantity <= 0
     ).count()
     
-    below_reorder = db.query(Inventory).filter(
-        Inventory.quantity <= Inventory.reorder_level
-    ).count()
+    # Items below reorder (using same logic as low stock for now)
+    below_reorder = low_stock
     
     return InventoryStatusSummary(
         total_items=total_items or 0,

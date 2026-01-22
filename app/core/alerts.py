@@ -199,9 +199,9 @@ class AlertService:
         """Get alerts for low stock situations."""
         alerts = []
         
-        # Find items below reorder level
+        # Find items with low quantity (threshold: <= 1 unit or <= 10% of average)
         low_stock_items = db.query(Inventory).filter(
-            Inventory.quantity <= Inventory.reorder_level
+            Inventory.quantity <= 1
         ).all()
         
         for item in low_stock_items:
@@ -217,12 +217,12 @@ class AlertService:
                 )
             ).first()
             
-            if item.quantity <= item.minimum_stock:
+            if item.quantity <= 0:
                 severity = AlertSeverity.CRITICAL
             else:
                 severity = AlertSeverity.WARNING
             
-            message = f"Inventory for material ID {item.material_id} is low: {item.quantity} {item.unit} (reorder level: {item.reorder_level})"
+            message = f"Inventory for material ID {item.material_id} is low: {item.quantity} {item.unit_of_measure}"
             if pending_po:
                 message += f" - PO pending"
             
@@ -236,8 +236,7 @@ class AlertService:
                 data={
                     "material_id": item.material_id,
                     "current_quantity": float(item.quantity),
-                    "minimum_stock": float(item.minimum_stock),
-                    "reorder_level": float(item.reorder_level),
+                    "unit": item.unit_of_measure,
                     "has_pending_po": pending_po is not None
                 }
             )

@@ -153,7 +153,7 @@ def generate_material_report(
         query = query.filter(MaterialInstance.material_id.in_(request.material_ids))
     if request.status_filter:
         statuses = [MaterialLifecycleStatus(s) for s in request.status_filter]
-        query = query.filter(MaterialInstance.status.in_(statuses))
+        query = query.filter(MaterialInstance.lifecycle_status.in_(statuses))
     
     instances = query.order_by(MaterialInstance.created_at.desc()).all()
     
@@ -172,11 +172,11 @@ def generate_material_report(
         material_data.append({
             'material_id': inst.material_id,
             'material_name': inst.material.name if inst.material else f'Material #{inst.material_id}',
-            'barcode': inst.barcode,
+            'barcode': inst.serial_number or inst.lot_number or '',
             'po_number': po_number,
-            'status': inst.status.value,
+            'status': inst.lifecycle_status.value,
             'quantity': float(inst.quantity),
-            'unit': inst.unit,
+            'unit': inst.unit_of_measure,
             'location': inst.storage_location or 'N/A',
             'updated_at': inst.updated_at
         })
@@ -605,7 +605,7 @@ def export_materials_csv(
     )
     
     if status_filter:
-        query = query.filter(MaterialInstance.status == MaterialLifecycleStatus(status_filter))
+        query = query.filter(MaterialInstance.lifecycle_status == MaterialLifecycleStatus(status_filter))
     
     instances = query.all()
     
@@ -625,10 +625,10 @@ def export_materials_csv(
             writer.writerow([
                 inst.id,
                 inst.material.name if inst.material else 'Unknown',
-                inst.barcode or '',
-                inst.status.value,
+                inst.serial_number or inst.lot_number or '',
+                inst.lifecycle_status.value,
                 f"{float(inst.quantity):.2f}",
-                inst.unit,
+                inst.unit_of_measure,
                 inst.storage_location or '',
                 str(inst.created_at)[:19] if inst.created_at else ''
             ])

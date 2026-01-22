@@ -15,7 +15,8 @@ from app.api.endpoints import (
     workflows,
     dashboard,
     reports,
-    websocket
+    websocket,
+    notifications
 )
 
 api_router = APIRouter()
@@ -36,3 +37,4 @@ api_router.include_router(workflows.router)
 api_router.include_router(dashboard.router)
 api_router.include_router(reports.router)
 api_router.include_router(websocket.router)
+api_router.include_router(notifications.router)
