@@ -80,6 +80,17 @@ from app.schemas.audit import (
     AuditLogQuery, AuditAction
 )
 
+# Purchase Order (Enhanced)
+from app.schemas.purchase_order import (
+    PurchaseOrderCreate, PurchaseOrderUpdate, PurchaseOrderResponse, PurchaseOrderListResponse,
+    POLineItemCreate, POLineItemUpdate, POLineItemResponse,
+    POApprovalRequest, POApprovalHistoryResponse,
+    GoodsReceiptNoteCreate, GoodsReceiptNoteUpdate, GoodsReceiptNoteResponse,
+    GRNLineItemCreate, GRNLineItemUpdate, GRNLineItemResponse,
+    MaterialLifecycleUpdate, MaterialLifecycleTracker, POSummary, SupplierPOSummary,
+    POStatusEnum, POPriorityEnum, MaterialStageEnum, GRNStatusEnum, ApprovalActionEnum
+)
+
 # Common
 from app.schemas.common import PaginatedResponse, Message
 
@@ -132,6 +143,14 @@ __all__ = [
     "AuditLogCreate", "AuditLogResponse",
     "DataChangeLogResponse", "LoginHistoryResponse",
     "AuditLogQuery", "AuditAction",
+    # Purchase Order (Enhanced)
+    "PurchaseOrderCreate", "PurchaseOrderUpdate", "PurchaseOrderResponse", "PurchaseOrderListResponse",
+    "POLineItemCreate", "POLineItemUpdate", "POLineItemResponse",
+    "POApprovalRequest", "POApprovalHistoryResponse",
+    "GoodsReceiptNoteCreate", "GoodsReceiptNoteUpdate", "GoodsReceiptNoteResponse",
+    "GRNLineItemCreate", "GRNLineItemUpdate", "GRNLineItemResponse",
+    "MaterialLifecycleUpdate", "MaterialLifecycleTracker", "POSummary", "SupplierPOSummary",
+    "POStatusEnum", "POPriorityEnum", "MaterialStageEnum", "GRNStatusEnum", "ApprovalActionEnum",
     # Common
     "PaginatedResponse", "Message",
 ]

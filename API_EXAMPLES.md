@@ -1566,14 +1566,401 @@ Authorization: Bearer <access_token>
 
 ---
 
+## Purchase Orders (Enhanced)
+
+The Purchase Order module provides complete lifecycle management from requisition to material receipt.
+
+### Quick Reference - PO Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/purchase-orders` | List POs with filters |
+| `GET` | `/purchase-orders/summary` | PO statistics |
+| `GET` | `/purchase-orders/{id}` | Get PO details |
+| `POST` | `/purchase-orders` | Create new PO |
+| `PUT` | `/purchase-orders/{id}` | Update draft PO |
+| `DELETE` | `/purchase-orders/{id}` | Delete draft PO |
+| `POST` | `/purchase-orders/{id}/items` | Add line item |
+| `PUT` | `/purchase-orders/{id}/items/{item_id}` | Update line item |
+| `DELETE` | `/purchase-orders/{id}/items/{item_id}` | Delete line item |
+| `POST` | `/purchase-orders/{id}/submit` | Submit for approval |
+| `POST` | `/purchase-orders/{id}/approve` | Approve/Reject PO |
+| `POST` | `/purchase-orders/{id}/order` | Mark as ordered |
+| `POST` | `/purchase-orders/{id}/cancel` | Cancel PO |
+| `GET` | `/purchase-orders/{id}/history` | Approval history |
+| `POST` | `/purchase-orders/{id}/receive` | Create GRN |
+| `GET` | `/purchase-orders/{id}/receipts` | List GRNs |
+| `GET` | `/purchase-orders/grn/{id}` | Get GRN |
+| `POST` | `/purchase-orders/grn/{id}/inspect` | Complete inspection |
+| `POST` | `/purchase-orders/grn/{id}/accept` | Accept to inventory |
+| `PUT` | `/purchase-orders/{id}/items/{item_id}/stage` | Update material stage |
+
+---
+
+### Material Lifecycle Flow
+
+```
+PO Created → Submitted → Approved → Ordered → Received → Inspected → Accepted to Inventory
+     ↓           ↓          ↓
+   Draft    Pending     Approved
+               ↓
+           Rejected/Returned
+```
+
+**Material Stages:** `on_order` → `in_inspection` → `raw_material` → `wip` → `finished_goods` → `consumed`
+
+---
+
+### Create Purchase Order
+```
+POST /api/v1/purchase-orders
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "supplier_id": 1,
+  "priority": "high",
+  "required_date": "2026-02-15",
+  "expected_delivery_date": "2026-02-10",
+  "tax_amount": 450.00,
+  "shipping_cost": 150.00,
+  "currency": "USD",
+  "shipping_method": "Air Freight",
+  "shipping_address": "1234 Factory Blvd, Warehouse A",
+  "requisition_number": "REQ-2026-001",
+  "project_reference": "PRJ-MLG-2026",
+  "work_order_reference": "WO-MLG-001",
+  "requires_certification": true,
+  "requires_inspection": true,
+  "payment_terms": "Net 30",
+  "delivery_terms": "FOB Origin",
+  "notes": "Urgent order for MLG production",
+  "line_items": [
+    {
+      "material_id": 1,
+      "quantity_ordered": 50.0,
+      "unit_of_measure": "kg",
+      "unit_price": 85.50,
+      "discount_percent": 5,
+      "required_date": "2026-02-15",
+      "specification": "AMS 4911",
+      "revision": "C",
+      "requires_certification": true,
+      "requires_inspection": true,
+      "notes": "Heat treated condition"
+    },
+    {
+      "material_id": 2,
+      "quantity_ordered": 100.0,
+      "unit_of_measure": "kg",
+      "unit_price": 12.75,
+      "discount_percent": 0,
+      "specification": "AMS 4045",
+      "notes": "T6 condition"
+    }
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "id": 1,
+  "po_number": "PO-20260122-A1B2C3",
+  "supplier_id": 1,
+  "created_by_id": 1,
+  "approved_by_id": null,
+  "status": "draft",
+  "priority": "high",
+  "po_date": "2026-01-22",
+  "required_date": "2026-02-15",
+  "subtotal": 5337.50,
+  "tax_amount": 450.00,
+  "shipping_cost": 150.00,
+  "discount_amount": 0,
+  "total_amount": 5937.50,
+  "currency": "USD",
+  "revision_number": 1,
+  "line_items": [
+    {
+      "id": 1,
+      "line_number": 1,
+      "material_id": 1,
+      "quantity_ordered": 50.0,
+      "quantity_received": 0,
+      "quantity_accepted": 0,
+      "unit_price": 85.50,
+      "discount_percent": 5,
+      "total_price": 4061.25,
+      "material_stage": "on_order"
+    }
+  ],
+  "created_at": "2026-01-22T10:00:00"
+}
+```
+
+**PO Status Values:** `draft`, `pending_approval`, `approved`, `rejected`, `ordered`, `partially_received`, `received`, `closed`, `cancelled`
+
+**PO Priority Values:** `low`, `normal`, `high`, `critical`, `aog` (Aircraft on Ground)
+
+---
+
+### List Purchase Orders
+```
+GET /api/v1/purchase-orders?page=1&page_size=20&status=pending_approval&priority=high
+Authorization: Bearer <access_token>
+```
+
+**Query Parameters:**
+- `status`: Filter by PO status
+- `priority`: Filter by priority
+- `supplier_id`: Filter by supplier
+- `from_date`: Filter by PO date (from)
+- `to_date`: Filter by PO date (to)
+- `search`: Search by PO number or requisition number
+
+---
+
+### Get PO Summary
+```
+GET /api/v1/purchase-orders/summary
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "total_pos": 150,
+  "draft_count": 12,
+  "pending_approval_count": 8,
+  "approved_count": 15,
+  "ordered_count": 45,
+  "received_count": 70,
+  "total_value": 1250000.00,
+  "pending_value": 185000.00
+}
+```
+
+---
+
+### Submit PO for Approval
+```
+POST /api/v1/purchase-orders/1/submit
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "id": 1,
+  "po_number": "PO-20260122-A1B2C3",
+  "status": "pending_approval",
+  ...
+}
+```
+
+---
+
+### Approve/Reject Purchase Order (Head of Ops/Director)
+```
+POST /api/v1/purchase-orders/1/approve
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Approve:**
+```json
+{
+  "action": "approved",
+  "comments": "Approved - within budget allocation"
+}
+```
+
+**Reject:**
+```json
+{
+  "action": "rejected",
+  "comments": "Pricing needs renegotiation with supplier"
+}
+```
+
+**Return for Revision:**
+```json
+{
+  "action": "returned",
+  "comments": "Please add backup supplier quote"
+}
+```
+
+> **Note:** POs over $10,000 require Director approval.
+
+---
+
+### Mark PO as Ordered
+```
+POST /api/v1/purchase-orders/1/order?tracking_number=TRK123456
+Authorization: Bearer <access_token>
+```
+
+---
+
+### Cancel Purchase Order
+```
+POST /api/v1/purchase-orders/1/cancel?reason=Project%20cancelled
+Authorization: Bearer <access_token>
+```
+
+---
+
+### Get PO Approval History
+```
+GET /api/v1/purchase-orders/1/history
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+[
+  {
+    "id": 3,
+    "purchase_order_id": 1,
+    "user_id": 2,
+    "action": "approved",
+    "from_status": "pending_approval",
+    "to_status": "approved",
+    "comments": "Approved - within budget",
+    "po_total_at_action": 5937.50,
+    "po_revision_at_action": 1,
+    "ip_address": "192.168.1.100",
+    "created_at": "2026-01-22T14:30:00"
+  },
+  {
+    "id": 2,
+    "purchase_order_id": 1,
+    "user_id": 1,
+    "action": "submitted",
+    "from_status": "draft",
+    "to_status": "pending_approval",
+    "comments": "Submitted for approval",
+    "created_at": "2026-01-22T10:00:00"
+  }
+]
+```
+
+---
+
+### Create Goods Receipt Note (Receive Materials)
+```
+POST /api/v1/purchase-orders/1/receive
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "purchase_order_id": 1,
+  "receipt_date": "2026-02-10",
+  "delivery_note_number": "DN-2026-001",
+  "invoice_number": "INV-2026-12345",
+  "carrier": "FedEx",
+  "tracking_number": "TRK123456789",
+  "packing_slip_received": true,
+  "coc_received": true,
+  "mtr_received": true,
+  "storage_location": "Warehouse-A",
+  "notes": "Received in good condition",
+  "line_items": [
+    {
+      "po_line_item_id": 1,
+      "quantity_received": 50.0,
+      "unit_of_measure": "kg",
+      "lot_number": "LOT-2026-001",
+      "batch_number": "BATCH-001",
+      "heat_number": "HT-45678",
+      "manufacture_date": "2026-01-15",
+      "expiry_date": "2028-01-15",
+      "storage_location": "Warehouse-A",
+      "bin_number": "A-12-03",
+      "notes": "Mill cert received"
+    }
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "id": 1,
+  "grn_number": "GRN-20260210-X1Y2Z3",
+  "purchase_order_id": 1,
+  "received_by_id": 3,
+  "status": "draft",
+  "receipt_date": "2026-02-10",
+  "line_items": [...]
+}
+```
+
+**GRN Status Values:** `draft`, `pending_inspection`, `inspection_passed`, `inspection_failed`, `accepted`, `rejected`, `partial`
+
+---
+
+### Complete QA Inspection (QA Role)
+```
+POST /api/v1/purchase-orders/grn/1/inspect?inspection_passed=true&inspection_notes=All%20materials%20meet%20spec
+Authorization: Bearer <access_token>
+```
+
+---
+
+### Accept GRN to Inventory (Store Role)
+```
+POST /api/v1/purchase-orders/grn/1/accept
+Authorization: Bearer <access_token>
+```
+
+This creates inventory records for all accepted materials.
+
+---
+
+### Update Material Lifecycle Stage
+```
+PUT /api/v1/purchase-orders/1/items/1/stage
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "material_stage": "wip",
+  "notes": "Moved to production floor for machining"
+}
+```
+
+**Material Stage Values:** `on_order`, `raw_material`, `in_inspection`, `wip`, `finished_goods`, `consumed`, `scrapped`
+
+**Valid Stage Transitions:**
+- `on_order` → `in_inspection`, `raw_material`
+- `in_inspection` → `raw_material`, `scrapped`
+- `raw_material` → `wip`, `consumed`
+- `wip` → `finished_goods`, `scrapped`
+- `finished_goods` → `consumed`, `scrapped`
+
+---
+
 ## Quick Reference - Status Values
 
 | Entity | Status Values |
 |--------|---------------|
-| **User Roles** | `director`, `head_of_operations`, `store`, `purchase`, `qa`, `engineer`, `technician`, `viewer` |
+| **User Roles** | `admin`, `director`, `head_of_operations`, `store`, `purchase`, `qa`, `engineer`, `technician`, `viewer` |
 | **Departments** | `OPERATIONS`, `PROCUREMENT`, `QUALITY_ASSURANCE`, `ENGINEERING`, `PRODUCTION`, `STORES`, `FINANCE`, `ADMINISTRATION` |
 | Material Type | `metal`, `composite`, `polymer`, `ceramic`, `alloy`, `coating`, `adhesive`, `other` |
 | Material Status | `active`, `discontinued`, `pending_approval`, `restricted` |
+| **Material Stage** | `on_order`, `in_inspection`, `raw_material`, `wip`, `finished_goods`, `consumed`, `scrapped` |
 | Part Status | `design`, `prototype`, `production`, `obsolete`, `restricted` |
 | Part Criticality | `critical`, `major`, `minor`, `standard` |
 | Supplier Status | `active`, `inactive`, `pending_approval`, `suspended`, `blacklisted` |
@@ -1584,6 +1971,10 @@ Authorization: Bearer <access_token>
 | Certification Status | `active`, `expired`, `pending`, `revoked`, `suspended` |
 | Order Status | `draft`, `pending_approval`, `approved`, `ordered`, `shipped`, `partially_received`, `received`, `cancelled`, `on_hold` |
 | Order Priority | `low`, `normal`, `high`, `critical`, `aog` |
+| **PO Status** | `draft`, `pending_approval`, `approved`, `rejected`, `ordered`, `partially_received`, `received`, `closed`, `cancelled` |
+| **PO Priority** | `low`, `normal`, `high`, `critical`, `aog` |
+| **GRN Status** | `draft`, `pending_inspection`, `inspection_passed`, `inspection_failed`, `accepted`, `rejected`, `partial` |
+| **Approval Action** | `submitted`, `approved`, `rejected`, `returned`, `cancelled` |
 
 ---
 
@@ -1599,10 +1990,27 @@ Authorization: Bearer <access_token>
 | **Suppliers** | Full | View | - | Full | View | View | - | View |
 | **Inventory** | Full | View | Full | View | View | View | View | View |
 | **Orders** | Full | Full | View | Full | - | - | - | View |
+| **Purchase Orders** | Full | Approve | Receive | Full | Inspect | - | - | View |
 | **Certifications** | Full | View | - | View | Full | View | - | View |
 | **Workflows** | Approve | Approve | - | - | Approve | - | - | - |
 | **Projects** | Full | Full | - | - | - | View | - | View |
 | **Audit Logs** | Full | View | - | - | - | - | - | - |
+
+### Purchase Order Workflow Permissions
+
+| Action | Required Role |
+|--------|---------------|
+| Create PO | Purchase, Head of Ops, Director |
+| Update Draft PO | Purchase, Head of Ops, Director |
+| Submit for Approval | Purchase, Head of Ops, Director |
+| Approve/Reject PO (<$10K) | Head of Ops, Director |
+| Approve/Reject PO (>$10K) | Director only |
+| Mark as Ordered | Purchase, Head of Ops, Director |
+| Cancel PO | Head of Ops, Director |
+| Receive Materials (Create GRN) | Store, Head of Ops, Director |
+| Inspect Materials | QA, Head of Ops, Director |
+| Accept to Inventory | Store, Head of Ops, Director |
+| Update Material Stage | Store, Head of Ops, Director |
 
 ### Authentication Flow
 

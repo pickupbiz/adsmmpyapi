@@ -41,6 +41,13 @@ from app.models.project import (
 # Audit
 from app.models.audit import AuditLog, DataChangeLog, LoginHistory, AuditAction
 
+# Purchase Orders (Enhanced)
+from app.models.purchase_order import (
+    PurchaseOrder, POLineItem, POApprovalHistory,
+    GoodsReceiptNote, GRNLineItem,
+    POStatus, POPriority, ApprovalAction, MaterialStage, GRNStatus
+)
+
 __all__ = [
     # Base
     "TimestampMixin",
@@ -68,4 +75,8 @@ __all__ = [
     "ProjectStatus", "ProjectPriority", "BOMStatus", "BOMType",
     # Audit
     "AuditLog", "DataChangeLog", "LoginHistory", "AuditAction",
+    # Purchase Orders (Enhanced)
+    "PurchaseOrder", "POLineItem", "POApprovalHistory",
+    "GoodsReceiptNote", "GRNLineItem",
+    "POStatus", "POPriority", "ApprovalAction", "MaterialStage", "GRNStatus",
 ]
