@@ -137,3 +137,13 @@ tmp/
 temp/
 *.tmp
 *.temp
+
+# Generated reports (keep directory structure)
+reports/*.pdf
+reports/*.xlsx
+reports/*.csv
+!reports/.gitkeep
+
+# Barcode images
+barcodes/
+*.png

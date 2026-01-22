@@ -433,6 +433,249 @@ class EmailTemplates:
         """
         
         return {"subject": subject, "html": body_html, "text": body_text}
+    
+    @staticmethod
+    def po_delivery_approaching(
+        po_number: str,
+        supplier_name: str,
+        expected_delivery_date: str,
+        days_remaining: int,
+        recipient_name: str,
+        po_url: str = ""
+    ) -> Dict[str, str]:
+        """Generate PO delivery date approaching email."""
+        subject = f"[Reminder] PO {po_number} Delivery Approaching - {days_remaining} Day(s)"
+        
+        body_html = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: #f39c12;">📅 PO Delivery Date Approaching</h2>
+                
+                <p>Dear {recipient_name},</p>
+                
+                <p>This is a reminder that a Purchase Order delivery is approaching:</p>
+                
+                <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                    <tr style="background-color: #f8f9fa;">
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">PO Number</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{po_number}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Supplier</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{supplier_name}</td>
+                    </tr>
+                    <tr style="background-color: #fff3cd;">
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Expected Delivery</td>
+                        <td style="padding: 10px; border: 1px solid #ddd; color: #f39c12; font-weight: bold;">{expected_delivery_date}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Days Remaining</td>
+                        <td style="padding: 10px; border: 1px solid #ddd; color: {'#e74c3c' if days_remaining <= 3 else '#f39c12'}; font-weight: bold;">{days_remaining} day(s)</td>
+                    </tr>
+                </table>
+                
+                <p>Please ensure you are prepared to receive the materials.</p>
+                
+                {f'<p><a href="{po_url}" style="background-color: #1a5276; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">View PO Details</a></p>' if po_url else ''}
+                
+                <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+                <p style="color: #666; font-size: 12px;">This is an automated message from the Aerospace Materials Management System.</p>
+            </div>
+        </body>
+        </html>
+        """
+        
+        body_text = f"""
+        PO Delivery Date Approaching
+        
+        Dear {recipient_name},
+        
+        This is a reminder that a Purchase Order delivery is approaching:
+        
+        PO Number: {po_number}
+        Supplier: {supplier_name}
+        Expected Delivery: {expected_delivery_date}
+        Days Remaining: {days_remaining} day(s)
+        
+        Please ensure you are prepared to receive the materials.
+        
+        --
+        Aerospace Materials Management System
+        """
+        
+        return {"subject": subject, "html": body_html, "text": body_text}
+    
+    @staticmethod
+    def material_receipt_confirmation(
+        grn_number: str,
+        po_number: str,
+        supplier_name: str,
+        received_by: str,
+        received_date: str,
+        total_items: int,
+        recipient_name: str,
+        grn_url: str = ""
+    ) -> Dict[str, str]:
+        """Generate material receipt confirmation email."""
+        subject = f"[Confirmed] Material Received - GRN {grn_number} for PO {po_number}"
+        
+        body_html = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: #27ae60;">✓ Material Receipt Confirmed</h2>
+                
+                <p>Dear {recipient_name},</p>
+                
+                <p>Materials have been received against Purchase Order:</p>
+                
+                <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                    <tr style="background-color: #f8f9fa;">
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">GRN Number</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{grn_number}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">PO Number</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{po_number}</td>
+                    </tr>
+                    <tr style="background-color: #f8f9fa;">
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Supplier</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{supplier_name}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Received By</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{received_by}</td>
+                    </tr>
+                    <tr style="background-color: #f8f9fa;">
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Received Date</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{received_date}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Total Items</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{total_items}</td>
+                    </tr>
+                </table>
+                
+                <p>Materials are now pending quality inspection.</p>
+                
+                {f'<p><a href="{grn_url}" style="background-color: #1a5276; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">View GRN Details</a></p>' if grn_url else ''}
+                
+                <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+                <p style="color: #666; font-size: 12px;">This is an automated message from the Aerospace Materials Management System.</p>
+            </div>
+        </body>
+        </html>
+        """
+        
+        body_text = f"""
+        Material Receipt Confirmed
+        
+        Dear {recipient_name},
+        
+        Materials have been received against Purchase Order:
+        
+        GRN Number: {grn_number}
+        PO Number: {po_number}
+        Supplier: {supplier_name}
+        Received By: {received_by}
+        Received Date: {received_date}
+        Total Items: {total_items}
+        
+        Materials are now pending quality inspection.
+        
+        --
+        Aerospace Materials Management System
+        """
+        
+        return {"subject": subject, "html": body_html, "text": body_text}
+    
+    @staticmethod
+    def po_quantity_discrepancy(
+        po_number: str,
+        material_name: str,
+        ordered_quantity: float,
+        received_quantity: float,
+        variance: float,
+        variance_percentage: float,
+        recipient_name: str,
+        po_url: str = ""
+    ) -> Dict[str, str]:
+        """Generate PO quantity discrepancy alert email."""
+        severity = "CRITICAL" if abs(variance_percentage) > 10 else "WARNING"
+        color = "#e74c3c" if abs(variance_percentage) > 10 else "#f39c12"
+        
+        subject = f"[{severity}] PO {po_number} Quantity Discrepancy Detected"
+        
+        body_html = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: {color};">{'⚠' if severity == 'WARNING' else '🚨'} Quantity Discrepancy Alert</h2>
+                
+                <p>Dear {recipient_name},</p>
+                
+                <p>A quantity discrepancy has been detected for Purchase Order:</p>
+                
+                <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                    <tr style="background-color: #f8f9fa;">
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">PO Number</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{po_number}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Material</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{material_name}</td>
+                    </tr>
+                    <tr style="background-color: #f8f9fa;">
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Ordered Quantity</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{ordered_quantity:,.2f}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Received Quantity</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{received_quantity:,.2f}</td>
+                    </tr>
+                    <tr style="background-color: #fff3cd;">
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Variance</td>
+                        <td style="padding: 10px; border: 1px solid #ddd; color: {color}; font-weight: bold;">{variance:+,.2f}</td>
+                    </tr>
+                    <tr style="background-color: #fff3cd;">
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Variance %</td>
+                        <td style="padding: 10px; border: 1px solid #ddd; color: {color}; font-weight: bold;">{variance_percentage:+.1f}%</td>
+                    </tr>
+                </table>
+                
+                <p>Please review and take appropriate action.</p>
+                
+                {f'<p><a href="{po_url}" style="background-color: #1a5276; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Review PO</a></p>' if po_url else ''}
+                
+                <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+                <p style="color: #666; font-size: 12px;">This is an automated message from the Aerospace Materials Management System.</p>
+            </div>
+        </body>
+        </html>
+        """
+        
+        body_text = f"""
+        PO Quantity Discrepancy Alert
+        
+        Dear {recipient_name},
+        
+        A quantity discrepancy has been detected for Purchase Order:
+        
+        PO Number: {po_number}
+        Material: {material_name}
+        Ordered Quantity: {ordered_quantity:,.2f}
+        Received Quantity: {received_quantity:,.2f}
+        Variance: {variance:+,.2f}
+        Variance %: {variance_percentage:+.1f}%
+        
+        Please review and take appropriate action.
+        
+        --
+        Aerospace Materials Management System
+        """
+        
+        return {"subject": subject, "html": body_html, "text": body_text}
 
 
 class NotificationService:
@@ -645,6 +888,92 @@ class NotificationService:
         )
         return self.send_email(
             to_email=escalated_to_email,
+            subject=template["subject"],
+            body_html=template["html"],
+            body_text=template["text"]
+        )
+    
+    def notify_po_delivery_approaching(
+        self,
+        recipient_email: str,
+        recipient_name: str,
+        po_number: str,
+        supplier_name: str,
+        expected_delivery_date: str,
+        days_remaining: int,
+        po_url: str = ""
+    ) -> bool:
+        """Send PO delivery date approaching notification."""
+        template = EmailTemplates.po_delivery_approaching(
+            po_number=po_number,
+            supplier_name=supplier_name,
+            expected_delivery_date=expected_delivery_date,
+            days_remaining=days_remaining,
+            recipient_name=recipient_name,
+            po_url=po_url
+        )
+        return self.send_email(
+            to_email=recipient_email,
+            subject=template["subject"],
+            body_html=template["html"],
+            body_text=template["text"]
+        )
+    
+    def notify_material_receipt_confirmation(
+        self,
+        recipient_email: str,
+        recipient_name: str,
+        grn_number: str,
+        po_number: str,
+        supplier_name: str,
+        received_by: str,
+        received_date: str,
+        total_items: int,
+        grn_url: str = ""
+    ) -> bool:
+        """Send material receipt confirmation notification."""
+        template = EmailTemplates.material_receipt_confirmation(
+            grn_number=grn_number,
+            po_number=po_number,
+            supplier_name=supplier_name,
+            received_by=received_by,
+            received_date=received_date,
+            total_items=total_items,
+            recipient_name=recipient_name,
+            grn_url=grn_url
+        )
+        return self.send_email(
+            to_email=recipient_email,
+            subject=template["subject"],
+            body_html=template["html"],
+            body_text=template["text"]
+        )
+    
+    def notify_po_quantity_discrepancy(
+        self,
+        recipient_email: str,
+        recipient_name: str,
+        po_number: str,
+        material_name: str,
+        ordered_quantity: float,
+        received_quantity: float,
+        variance: float,
+        variance_percentage: float,
+        po_url: str = ""
+    ) -> bool:
+        """Send PO quantity discrepancy alert."""
+        template = EmailTemplates.po_quantity_discrepancy(
+            po_number=po_number,
+            material_name=material_name,
+            ordered_quantity=ordered_quantity,
+            received_quantity=received_quantity,
+            variance=variance,
+            variance_percentage=variance_percentage,
+            recipient_name=recipient_name,
+            po_url=po_url
+        )
+        return self.send_email(
+            to_email=recipient_email,
             subject=template["subject"],
             body_html=template["html"],
             body_text=template["text"]
