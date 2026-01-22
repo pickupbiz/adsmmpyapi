@@ -170,7 +170,12 @@ def create_material(
             detail="Part number already exists"
         )
     
-    material = Material(**material_in.model_dump())
+    # Convert category_id=0 to None (no category)
+    material_data = material_in.model_dump()
+    if material_data.get("category_id") == 0:
+        material_data["category_id"] = None
+    
+    material = Material(**material_data)
     db.add(material)
     db.commit()
     db.refresh(material)
@@ -193,6 +198,10 @@ def update_material(
         )
     
     update_data = material_in.model_dump(exclude_unset=True)
+    # Convert category_id=0 to None (no category)
+    if update_data.get("category_id") == 0:
+        update_data["category_id"] = None
+    
     for field, value in update_data.items():
         setattr(material, field, value)
     
