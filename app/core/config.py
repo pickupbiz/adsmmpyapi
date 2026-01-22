@@ -13,8 +13,18 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     API_V1_PREFIX: str = "/api/v1"
     
-    # Database
+    # Database - Sync (for Alembic)
     DATABASE_URL: str = "postgresql://postgres:password@localhost:5432/aerospace_parts"
+    
+    # Database - Async (for application)
+    @property
+    def ASYNC_DATABASE_URL(self) -> str:
+        """Convert sync URL to async URL for asyncpg."""
+        return self.DATABASE_URL.replace(
+            "postgresql://", "postgresql+asyncpg://"
+        ).replace(
+            "postgresql+psycopg2://", "postgresql+asyncpg://"
+        )
     
     # JWT Settings
     SECRET_KEY: str = "your-super-secret-key-change-in-production"

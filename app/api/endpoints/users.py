@@ -8,7 +8,7 @@ from app.schemas.user import UserResponse, UserUpdate
 from app.schemas.common import PaginatedResponse
 from app.api.dependencies import (
     get_current_user,
-    require_admin,
+    require_director,
     PaginationParams
 )
 from app.crud.user import crud_user
@@ -20,7 +20,7 @@ router = APIRouter(prefix="/users", tags=["Users"])
 def list_users(
     pagination: PaginationParams = Depends(),
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_admin)
+    current_user: User = Depends(require_director)
 ):
     """
     List all users (admin only).
@@ -46,7 +46,7 @@ def list_users(
 def get_user(
     user_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_admin)
+    current_user: User = Depends(require_director)
 ):
     """
     Get user by ID (admin only).
@@ -65,7 +65,7 @@ def update_user(
     user_id: int,
     user_in: UserUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_admin)
+    current_user: User = Depends(require_director)
 ):
     """
     Update user (admin only).
@@ -93,7 +93,7 @@ def update_user(
 def delete_user(
     user_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_admin)
+    current_user: User = Depends(require_director)
 ):
     """
     Delete user (admin only).

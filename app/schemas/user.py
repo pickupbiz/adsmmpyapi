@@ -7,11 +7,26 @@ from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
 class UserRole(str, Enum):
     """User role enumeration."""
-    ADMIN = "admin"
-    MANAGER = "manager"
+    DIRECTOR = "director"
+    HEAD_OF_OPERATIONS = "head_of_operations"
+    STORE = "store"
+    PURCHASE = "purchase"
+    QA = "qa"
     ENGINEER = "engineer"
     TECHNICIAN = "technician"
     VIEWER = "viewer"
+
+
+class Department(str, Enum):
+    """Department enumeration."""
+    OPERATIONS = "operations"
+    PROCUREMENT = "procurement"
+    QUALITY_ASSURANCE = "quality_assurance"
+    ENGINEERING = "engineering"
+    PRODUCTION = "production"
+    STORES = "stores"
+    FINANCE = "finance"
+    ADMINISTRATION = "administration"
 
 
 class UserBase(BaseModel):
@@ -19,8 +34,13 @@ class UserBase(BaseModel):
     email: EmailStr
     full_name: str = Field(..., min_length=1, max_length=255)
     employee_id: Optional[str] = Field(None, max_length=50)
-    department: Optional[str] = Field(None, max_length=100)
+    phone: Optional[str] = Field(None, max_length=50)
     role: UserRole = UserRole.VIEWER
+    department: Optional[Department] = None
+    designation: Optional[str] = Field(None, max_length=100)
+    reports_to_id: Optional[int] = None
+    approval_limit: Optional[float] = Field(None, ge=0)
+    can_approve_workflows: bool = False
     notes: Optional[str] = None
 
 
@@ -36,8 +56,13 @@ class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     full_name: Optional[str] = Field(None, min_length=1, max_length=255)
     employee_id: Optional[str] = Field(None, max_length=50)
-    department: Optional[str] = Field(None, max_length=100)
+    phone: Optional[str] = Field(None, max_length=50)
     role: Optional[UserRole] = None
+    department: Optional[Department] = None
+    designation: Optional[str] = Field(None, max_length=100)
+    reports_to_id: Optional[int] = None
+    approval_limit: Optional[float] = Field(None, ge=0)
+    can_approve_workflows: Optional[bool] = None
     is_active: Optional[bool] = None
     notes: Optional[str] = None
     password: Optional[str] = Field(None, min_length=8, max_length=100)
