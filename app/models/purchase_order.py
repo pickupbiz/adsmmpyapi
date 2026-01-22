@@ -98,6 +98,7 @@ class PurchaseOrder(Base, TimestampMixin):
     po_date: Mapped[date] = mapped_column(Date, default=date.today, nullable=False)
     required_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     expected_delivery_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    actual_delivery_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)  # Actual delivery date
     approved_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     ordered_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     

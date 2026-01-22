@@ -14,6 +14,14 @@ Base URL: `http://localhost:5055/api/v1`
 7. [Inventory](#inventory)
 8. [Certifications](#certifications)
 9. [Orders](#orders)
+10. [Purchase Orders (Enhanced)](#purchase-orders-enhanced)
+11. [Material Instances](#material-instance-examples)
+12. [Barcode Management](#12-barcode-management-with-po-integration)
+13. [Workflow Management](#13-workflow-management-with-po-approval)
+14. [Dashboard & Analytics](#14-dashboard--analytics)
+15. [Reports](#15-reports)
+16. [WebSocket Real-time Updates](#16-websocket-real-time-updates)
+17. [Notifications](#17-notifications)
 
 ---
 
@@ -2199,6 +2207,102 @@ Material instances track individual materials through their full lifecycle, inte
 | `GET` | `/material-instances/bom-sources` | List BOM sources | Yes |
 | `PUT` | `/material-instances/bom-sources/{id}` | Update BOM source | Yes (Engineer+) |
 
+### Purchase Orders (`/api/v1/purchase-orders`)
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `GET` | `/purchase-orders` | List POs with filtering | Yes |
+| `GET` | `/purchase-orders/{id}` | Get PO details | Yes |
+| `POST` | `/purchase-orders` | Create PO | Yes (Purchase+) |
+| `PUT` | `/purchase-orders/{id}` | Update PO | Yes (Purchase+) |
+| `POST` | `/purchase-orders/{id}/submit` | Submit for approval | Yes (Purchase+) |
+| `POST` | `/purchase-orders/{id}/approve` | Approve PO | Yes (Head of Ops+) |
+| `POST` | `/purchase-orders/{id}/reject` | Reject PO | Yes (Head of Ops+) |
+| `POST` | `/purchase-orders/{id}/mark-ordered` | Mark as ordered | Yes (Purchase+) |
+| `POST` | `/purchase-orders/{id}/cancel` | Cancel PO | Yes (Purchase+) |
+| `POST` | `/purchase-orders/{id}/grn` | Create GRN | Yes (Store+) |
+| `GET` | `/purchase-orders/{id}/approval-history` | Get approval history | Yes |
+
+### Barcodes (`/api/v1/barcodes`)
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `GET` | `/barcodes` | List barcodes | Yes |
+| `GET` | `/barcodes/{id}` | Get barcode details | Yes |
+| `POST` | `/barcodes/generate` | Generate barcode | Yes (Store+) |
+| `POST` | `/barcodes/generate-from-po` | Generate from PO line item | Yes (Store+) |
+| `POST` | `/barcodes/scan` | Process barcode scan | Yes (Store+) |
+| `POST` | `/barcodes/scan-to-receive` | Scan to receive against PO | Yes (Store+) |
+| `POST` | `/barcodes/validate` | Validate barcode | Yes |
+| `GET` | `/barcodes/{id}/traceability` | Get traceability chain | Yes |
+| `POST` | `/barcodes/wip` | Create WIP barcode | Yes (Store+) |
+| `POST` | `/barcodes/finished-goods` | Create finished goods barcode | Yes (Store+) |
+
+### Workflows (`/api/v1/workflows`)
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `GET` | `/workflows/templates` | List workflow templates | Yes |
+| `POST` | `/workflows/templates` | Create template | Yes (Director+) |
+| `GET` | `/workflows/instances` | List workflow instances | Yes |
+| `POST` | `/workflows/instances` | Create workflow instance | Yes |
+| `GET` | `/workflows/pending` | Get pending approvals | Yes |
+| `POST` | `/workflows/instances/{id}/approve` | Approve workflow step | Yes |
+| `POST` | `/workflows/instances/{id}/reject` | Reject workflow step | Yes |
+| `GET` | `/workflows/instances/{id}/audit` | Get audit trail | Yes |
+
+### Dashboard (`/api/v1/dashboard`)
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `GET` | `/dashboard/overview` | Complete dashboard overview | Yes |
+| `GET` | `/dashboard/po-summary` | PO status summary | Yes |
+| `GET` | `/dashboard/material-summary` | Material status summary | Yes |
+| `GET` | `/dashboard/inventory-summary` | Inventory status summary | Yes |
+| `GET` | `/dashboard/po-vs-received` | PO vs received comparison | Yes |
+| `GET` | `/dashboard/delivery-analytics` | Delivery performance | Yes |
+| `GET` | `/dashboard/lead-time` | PO-to-production lead time | Yes |
+| `GET` | `/dashboard/supplier-performance` | Supplier analytics | Yes |
+| `GET` | `/dashboard/project-consumption` | Project consumption report | Yes |
+| `GET` | `/dashboard/material-movement` | Material movement history | Yes |
+| `GET` | `/dashboard/stock-analysis` | Stock analysis | Yes |
+| `GET` | `/dashboard/alerts` | Get active alerts | Yes |
+| `POST` | `/dashboard/alerts/{alert_id}/acknowledge` | Acknowledge alert | Yes |
+
+### Reports (`/api/v1/reports`)
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `POST` | `/reports/po` | Generate PO report (PDF/Excel/CSV) | Yes |
+| `POST` | `/reports/materials` | Generate material report | Yes |
+| `POST` | `/reports/inventory` | Generate inventory report | Yes |
+| `POST` | `/reports/suppliers` | Generate supplier report | Yes |
+| `POST` | `/reports/project-consumption` | Generate project report | Yes |
+| `GET` | `/reports/download/{filename}` | Download generated report | Yes |
+| `GET` | `/reports/export/po-csv` | Quick PO CSV export | Yes |
+| `GET` | `/reports/export/inventory-csv` | Quick inventory CSV export | Yes |
+| `GET` | `/reports/export/materials-csv` | Quick materials CSV export | Yes |
+
+### WebSocket (`/api/v1/ws`)
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `WS` | `/ws?token=<jwt>` | WebSocket connection | Yes (token in query) |
+| `GET` | `/ws/status` | WebSocket server status | Yes |
+
+### Notifications (`/api/v1/notifications`)
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `GET` | `/notifications/config` | Get notification config | Yes |
+| `POST` | `/notifications/po/{po_id}/check-delivery` | Check PO delivery alert | Yes |
+| `POST` | `/notifications/po/{po_id}/check-quantity-discrepancy` | Check quantity variance | Yes |
+| `POST` | `/notifications/grn/{grn_id}/receipt-confirmation` | Send receipt confirmation | Yes |
+| `POST` | `/notifications/check-all-po-deliveries` | Check all PO deliveries | Yes |
+| `POST` | `/notifications/check-all-quantity-discrepancies` | Check all discrepancies | Yes |
+| `GET` | `/notifications/history` | Get notification history | Yes |
+| `GET` | `/notifications/in-app` | Get in-app notifications | Yes |
+
 ---
 
 ## Material Instance Examples
@@ -3244,10 +3348,990 @@ The system sends email notifications for:
 - **PO Pending Approval**: Sent to approvers when a PO needs review
 - **PO Approved**: Sent to requestor when PO is approved
 - **PO Rejected**: Sent to requestor with rejection reason
+- **PO Delivery Approaching**: Sent when delivery is within 7 days (configurable)
+- **Material Receipt Confirmation**: Sent when materials are received against PO
+- **PO Quantity Discrepancy**: Sent when variance > 5% (critical if > 10%)
 - **Material Inspection Required**: Sent to QA when material needs inspection
 - **Workflow Escalation**: Sent when approval is overdue
 
-> **Note**: Email notifications are disabled by default. Enable in production by setting `EMAIL_ENABLED=true` in configuration.
+> **Note**: Email notifications are disabled by default. Enable in production by setting `EMAIL_ENABLED=true` in `.env` file and configuring SMTP settings (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD).
+
+---
+
+## 14. Dashboard & Analytics
+
+### Dashboard Endpoints Reference
+
+| Action | Method | URL | Role Required |
+|--------|--------|-----|---------------|
+| Dashboard Overview | `GET` | `/api/v1/dashboard/overview` | Any authenticated |
+| PO Summary | `GET` | `/api/v1/dashboard/po-summary` | Any authenticated |
+| Material Summary | `GET` | `/api/v1/dashboard/material-summary` | Any authenticated |
+| Inventory Summary | `GET` | `/api/v1/dashboard/inventory-summary` | Any authenticated |
+| PO vs Received | `GET` | `/api/v1/dashboard/po-vs-received` | Any authenticated |
+| Delivery Analytics | `GET` | `/api/v1/dashboard/delivery-analytics` | Any authenticated |
+| Lead Time Analytics | `GET` | `/api/v1/dashboard/lead-time` | Any authenticated |
+| Supplier Performance | `GET` | `/api/v1/dashboard/supplier-performance` | Any authenticated |
+| Project Consumption | `GET` | `/api/v1/dashboard/project-consumption` | Any authenticated |
+| Material Movement | `GET` | `/api/v1/dashboard/material-movement` | Any authenticated |
+| Stock Analysis | `GET` | `/api/v1/dashboard/stock-analysis` | Any authenticated |
+| Get Alerts | `GET` | `/api/v1/dashboard/alerts` | Any authenticated |
+| Acknowledge Alert | `POST` | `/api/v1/dashboard/alerts/{alert_id}/acknowledge` | Any authenticated |
+
+---
+
+### Get Dashboard Overview
+
+Get complete dashboard with all summaries and recent alerts.
+
+```
+GET /api/v1/dashboard/overview
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "po_summary": {
+    "total_pos": 45,
+    "draft_count": 5,
+    "pending_approval_count": 3,
+    "approved_count": 12,
+    "ordered_count": 15,
+    "partially_received_count": 6,
+    "completed_count": 4,
+    "total_value": 1250000.00,
+    "pending_value": 45000.00,
+    "ordered_value": 800000.00,
+    "received_value": 405000.00,
+    "pos_by_status": [
+      {
+        "status": "draft",
+        "count": 5,
+        "total_value": 25000.00
+      },
+      {
+        "status": "pending_approval",
+        "count": 3,
+        "total_value": 45000.00
+      }
+    ],
+    "avg_approval_time_hours": 18.5,
+    "avg_delivery_time_days": 12.3,
+    "overdue_pos": 2,
+    "pos_pending_this_week": 8
+  },
+  "material_summary": {
+    "total_material_instances": 234,
+    "ordered_count": 45,
+    "received_count": 38,
+    "in_inspection_count": 12,
+    "in_storage_count": 98,
+    "issued_count": 32,
+    "in_production_count": 8,
+    "completed_count": 1,
+    "rejected_count": 0,
+    "materials_by_status": [
+      {
+        "status": "in_storage",
+        "count": 98,
+        "total_quantity": 1250.50
+      }
+    ],
+    "pending_inspection": 12,
+    "low_stock_items": 5,
+    "expiring_soon": 2,
+    "total_inventory_value": 850000.00
+  },
+  "inventory_summary": {
+    "total_items": 156,
+    "total_quantity": 2345.75,
+    "total_value": 850000.00,
+    "low_stock_items": 8,
+    "out_of_stock_items": 2,
+    "items_below_reorder": 10
+  },
+  "recent_alerts": [
+    {
+      "id": "a1b2c3d4",
+      "type": "po_pending_approval",
+      "severity": "warning",
+      "title": "PO PO-2026-001 Pending Approval",
+      "message": "Purchase Order PO-2026-001 has been pending approval for 2 day(s). Total value: $45,000.00",
+      "entity_type": "purchase_order",
+      "entity_id": 123,
+      "entity_reference": "PO-2026-001",
+      "created_at": "2026-01-23T10:30:00Z",
+      "acknowledged": false
+    }
+  ],
+  "last_updated": "2026-01-23T10:45:00Z"
+}
+```
+
+---
+
+### Get PO vs Received Comparison
+
+Compare ordered vs received quantities for POs.
+
+```
+GET /api/v1/dashboard/po-vs-received?supplier_id=1&mismatch_only=true
+Authorization: Bearer <access_token>
+```
+
+**Query Parameters:**
+- `supplier_id` (optional): Filter by supplier
+- `from_date` (optional): Start date (YYYY-MM-DD)
+- `to_date` (optional): End date (YYYY-MM-DD)
+- `mismatch_only` (optional): Only show mismatches (default: false)
+- `page` (optional): Page number (default: 1)
+- `page_size` (optional): Items per page (default: 20)
+
+**Response:**
+```json
+[
+  {
+    "po_id": 123,
+    "po_number": "PO-2026-001",
+    "supplier_name": "Aerospace Supplies Inc",
+    "line_items": [
+      {
+        "material_id": 45,
+        "material_name": "Titanium Alloy Ti-6Al-4V",
+        "ordered_quantity": 100.0,
+        "received_quantity": 98.5,
+        "unit": "kg",
+        "variance": 1.5,
+        "variance_percentage": 1.5,
+        "status": "match"
+      }
+    ],
+    "total_ordered_quantity": 100.0,
+    "total_received_quantity": 98.5,
+    "variance_percentage": 1.5,
+    "status": "partially_received",
+    "has_mismatch": true
+  }
+]
+```
+
+---
+
+### Get Supplier Performance Analytics
+
+Get supplier performance metrics and rankings.
+
+```
+GET /api/v1/dashboard/supplier-performance?from_date=2026-01-01&to_date=2026-01-31&min_po_count=3
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "report_period": "2026-01-01 to 2026-01-31",
+  "generated_at": "2026-01-23T10:45:00Z",
+  "total_suppliers": 25,
+  "active_suppliers": 18,
+  "top_performers": [
+    {
+      "rank": 1,
+      "supplier_id": 5,
+      "supplier_name": "Premium Aerospace Materials",
+      "score": 95.5,
+      "metrics": {
+        "supplier_id": 5,
+        "supplier_name": "Premium Aerospace Materials",
+        "supplier_code": "PAM-001",
+        "total_pos": 12,
+        "completed_pos": 11,
+        "cancelled_pos": 0,
+        "total_value": 450000.00,
+        "on_time_delivery_rate": 98.5,
+        "quality_acceptance_rate": 99.2,
+        "quantity_accuracy_rate": 99.8,
+        "avg_delivery_time_days": 10.5,
+        "performance_score": 95.5,
+        "performance_trend": "improving"
+      }
+    }
+  ],
+  "underperformers": [],
+  "supplier_metrics": [...]
+}
+```
+
+---
+
+### Get Stock Analysis
+
+Get fast-moving materials and low stock analysis.
+
+```
+GET /api/v1/dashboard/stock-analysis
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "generated_at": "2026-01-23T10:45:00Z",
+  "fast_moving_materials": [
+    {
+      "material_id": 45,
+      "material_name": "Titanium Alloy Ti-6Al-4V",
+      "material_code": "TI-6AL-4V-001",
+      "consumption_rate": 8.5,
+      "total_consumed_30_days": 255.0,
+      "total_consumed_90_days": 765.0,
+      "avg_po_quantity": 200.0,
+      "po_frequency": 3,
+      "current_stock": 120.0,
+      "days_of_stock": 14.1,
+      "recommended_reorder_qty": 382.5
+    }
+  ],
+  "low_stock_items": [
+    {
+      "material_id": 67,
+      "material_name": "Aluminum 7075",
+      "material_code": "AL-7075-001",
+      "current_stock": 1.5,
+      "minimum_stock": 1.0,
+      "reorder_level": 2.0,
+      "unit": "kg",
+      "stock_percentage": 75.0,
+      "days_until_stockout": 5.2,
+      "pending_po_quantity": 50.0,
+      "expected_delivery_date": "2026-01-28",
+      "avg_consumption_rate": 0.29
+    }
+  ],
+  "out_of_stock_items": [],
+  "critical_items": [],
+  "items_with_pending_pos": 8
+}
+```
+
+---
+
+### Get Alerts
+
+Get all active alerts with filtering options.
+
+```
+GET /api/v1/dashboard/alerts?alert_types=po_pending_approval,quantity_mismatch&severities=critical,warning
+Authorization: Bearer <access_token>
+```
+
+**Query Parameters:**
+- `alert_types` (optional): Comma-separated list (po_pending_approval, quantity_mismatch, delayed_delivery, low_stock, etc.)
+- `severities` (optional): Comma-separated list (critical, warning, info)
+- `acknowledged` (optional): true/false
+
+**Response:**
+```json
+{
+  "total_alerts": 15,
+  "critical_count": 3,
+  "warning_count": 8,
+  "info_count": 4,
+  "po_pending_approvals": 2,
+  "quantity_mismatches": 1,
+  "delayed_deliveries": 3,
+  "low_stock_items": 5,
+  "alerts": [
+    {
+      "id": "a1b2c3d4",
+      "type": "po_pending_approval",
+      "severity": "critical",
+      "title": "PO PO-2026-001 Pending Approval",
+      "message": "Purchase Order PO-2026-001 has been pending approval for 4 day(s). Total value: $125,000.00",
+      "entity_type": "purchase_order",
+      "entity_id": 123,
+      "entity_reference": "PO-2026-001",
+      "data": {
+        "days_pending": 4,
+        "total_amount": 125000.0,
+        "supplier_id": 5
+      },
+      "created_at": "2026-01-19T10:30:00Z",
+      "acknowledged": false
+    }
+  ]
+}
+```
+
+---
+
+### Acknowledge Alert
+
+Mark an alert as acknowledged.
+
+```
+POST /api/v1/dashboard/alerts/a1b2c3d4/acknowledge
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "message": "Alert acknowledged",
+  "alert": {
+    "id": "a1b2c3d4",
+    "acknowledged": true,
+    "acknowledged_at": "2026-01-23T10:50:00Z",
+    "acknowledged_by": "John Doe"
+  }
+}
+```
+
+---
+
+## 15. Reports
+
+### Reports Endpoints Reference
+
+| Action | Method | URL | Role Required |
+|--------|--------|-----|---------------|
+| Generate PO Report | `POST` | `/api/v1/reports/po` | Any authenticated |
+| Generate Material Report | `POST` | `/api/v1/reports/materials` | Any authenticated |
+| Generate Inventory Report | `POST` | `/api/v1/reports/inventory` | Any authenticated |
+| Generate Supplier Report | `POST` | `/api/v1/reports/suppliers` | Any authenticated |
+| Generate Project Report | `POST` | `/api/v1/reports/project-consumption` | Any authenticated |
+| Download Report | `GET` | `/api/v1/reports/download/{filename}` | Any authenticated |
+| Export PO CSV | `GET` | `/api/v1/reports/export/po-csv` | Any authenticated |
+| Export Inventory CSV | `GET` | `/api/v1/reports/export/inventory-csv` | Any authenticated |
+| Export Materials CSV | `GET` | `/api/v1/reports/export/materials-csv` | Any authenticated |
+
+---
+
+### Generate PO Report (PDF/Excel/CSV)
+
+Generate a comprehensive Purchase Order report.
+
+```
+POST /api/v1/reports/po
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "date_range": "last_30_days",
+  "start_date": "2026-01-01",
+  "end_date": "2026-01-31",
+  "format": "pdf",
+  "supplier_ids": [1, 5],
+  "status_filter": ["approved", "ordered", "completed"],
+  "include_line_items": true
+}
+```
+
+**Date Range Options:**
+- `today`, `yesterday`, `last_7_days`, `last_30_days`
+- `this_month`, `last_month`, `this_quarter`, `this_year`
+- `custom` (requires start_date and end_date)
+
+**Format Options:**
+- `pdf` - PDF document
+- `excel` - Excel workbook (.xlsx)
+- `csv` - CSV file
+
+**Response:**
+```json
+{
+  "report_id": "rpt_abc123",
+  "report_name": "po_report_20260123_104500_abc123.pdf",
+  "format": "pdf",
+  "generated_at": "2026-01-23T10:45:00Z",
+  "file_url": "/api/v1/reports/download/po_report_20260123_104500_abc123.pdf",
+  "file_size_bytes": 245760,
+  "expires_at": "2026-01-24T10:45:00Z"
+}
+```
+
+**Download the Report:**
+```
+GET /api/v1/reports/download/po_report_20260123_104500_abc123.pdf
+Authorization: Bearer <access_token>
+```
+
+---
+
+### Generate Material Report
+
+Generate material status report with PO tracking.
+
+```
+POST /api/v1/reports/materials
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "date_range": "last_30_days",
+  "format": "excel",
+  "material_ids": [45, 67],
+  "category_ids": [1, 2],
+  "status_filter": ["in_storage", "in_production"]
+}
+```
+
+**Response:**
+```json
+{
+  "report_id": "rpt_def456",
+  "report_name": "material_report_20260123_104500_def456.xlsx",
+  "format": "excel",
+  "generated_at": "2026-01-23T10:45:00Z",
+  "file_url": "/api/v1/reports/download/material_report_20260123_104500_def456.xlsx",
+  "file_size_bytes": 189440
+}
+```
+
+---
+
+### Generate Supplier Performance Report
+
+Generate supplier analytics and performance report.
+
+```
+POST /api/v1/reports/suppliers
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "date_range": "this_year",
+  "format": "excel",
+  "supplier_ids": [1, 5, 10],
+  "min_po_count": 5
+}
+```
+
+**Response:**
+```json
+{
+  "report_id": "rpt_ghi789",
+  "report_name": "supplier_performance_20260123_104500_ghi789.xlsx",
+  "format": "excel",
+  "generated_at": "2026-01-23T10:45:00Z",
+  "file_url": "/api/v1/reports/download/supplier_performance_20260123_104500_ghi789.xlsx",
+  "file_size_bytes": 156672
+}
+```
+
+---
+
+### Quick CSV Export
+
+Stream CSV data directly (no file generation needed).
+
+```
+GET /api/v1/reports/export/po-csv?status_filter=approved
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+CSV file streamed directly (Content-Type: text/csv)
+
+**Example CSV Output:**
+```csv
+PO Number,Supplier,Order Date,Expected Delivery,Status,Total Amount
+PO-2026-001,Aerospace Supplies Inc,2026-01-15,2026-02-10,approved,45000.00
+PO-2026-002,Premium Materials,2026-01-16,2026-02-12,ordered,125000.00
+```
+
+---
+
+## 16. WebSocket Real-time Updates
+
+### WebSocket Connection
+
+Connect to WebSocket for real-time PO, material, and alert updates.
+
+```
+WS /api/v1/ws?token=<jwt_access_token>
+```
+
+**Connection URL:**
+```
+ws://localhost:5055/api/v1/ws?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+**Initial Message (from server):**
+```json
+{
+  "type": "connected",
+  "connection_id": "conn_1234567890",
+  "user_id": 1,
+  "role": "director",
+  "timestamp": "2026-01-23T10:45:00Z",
+  "message": "Connected to real-time updates"
+}
+```
+
+---
+
+### Client Messages
+
+**Subscribe to Entity Updates:**
+```json
+{
+  "type": "subscribe",
+  "entity_type": "purchase_order",
+  "entity_id": 123
+}
+```
+
+**Unsubscribe from Entity:**
+```json
+{
+  "type": "unsubscribe",
+  "entity_type": "purchase_order",
+  "entity_id": 123
+}
+```
+
+**Ping (Keep Connection Alive):**
+```json
+{
+  "type": "ping"
+}
+```
+
+**Get Status:**
+```json
+{
+  "type": "get_status"
+}
+```
+
+---
+
+### Server Messages
+
+**PO Status Change:**
+```json
+{
+  "type": "po_status_change",
+  "timestamp": "2026-01-23T10:45:00Z",
+  "entity_type": "purchase_order",
+  "entity_id": 123,
+  "data": {
+    "po_id": 123,
+    "po_number": "PO-2026-001",
+    "old_status": "pending_approval",
+    "new_status": "approved",
+    "changed_by": "John Doe"
+  }
+}
+```
+
+**Material Status Change:**
+```json
+{
+  "type": "material_status_change",
+  "timestamp": "2026-01-23T10:45:00Z",
+  "entity_type": "material_instance",
+  "entity_id": 456,
+  "data": {
+    "instance_id": 456,
+    "material_name": "Titanium Alloy",
+    "barcode": "BC-2026-001",
+    "old_status": "in_inspection",
+    "new_status": "in_storage"
+  }
+}
+```
+
+**New Alert:**
+```json
+{
+  "type": "new_alert",
+  "timestamp": "2026-01-23T10:45:00Z",
+  "entity_type": "purchase_order",
+  "entity_id": 123,
+  "data": {
+    "alert_type": "po_pending_approval",
+    "severity": "warning",
+    "title": "PO PO-2026-001 Pending Approval",
+    "message": "Purchase Order PO-2026-001 has been pending approval for 2 day(s)"
+  }
+}
+```
+
+**GRN Received:**
+```json
+{
+  "type": "grn_received",
+  "timestamp": "2026-01-23T10:45:00Z",
+  "entity_type": "grn",
+  "entity_id": 789,
+  "data": {
+    "grn_id": 789,
+    "grn_number": "GRN-2026-001",
+    "po_number": "PO-2026-001",
+    "supplier_name": "Aerospace Supplies Inc"
+  }
+}
+```
+
+**Inspection Complete:**
+```json
+{
+  "type": "inspection_complete",
+  "timestamp": "2026-01-23T10:45:00Z",
+  "entity_type": "material",
+  "entity_id": 456,
+  "data": {
+    "material_id": 456,
+    "material_name": "Titanium Alloy",
+    "result": "passed",
+    "inspector": "Jane Smith"
+  }
+}
+```
+
+---
+
+### WebSocket Status Endpoint
+
+Get WebSocket server status.
+
+```
+GET /api/v1/ws/status
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "active_connections": 5,
+  "connected_users": 3,
+  "dashboard_subscribers": 5,
+  "timestamp": "2026-01-23T10:45:00Z"
+}
+```
+
+---
+
+### JavaScript WebSocket Client Example
+
+```javascript
+// Connect to WebSocket
+const token = 'your_jwt_access_token';
+const ws = new WebSocket(`ws://localhost:5055/api/v1/ws?token=${token}`);
+
+// Handle connection
+ws.onopen = () => {
+  console.log('WebSocket connected');
+  
+  // Subscribe to PO updates
+  ws.send(JSON.stringify({
+    type: 'subscribe',
+    entity_type: 'purchase_order',
+    entity_id: 123
+  }));
+};
+
+// Handle messages
+ws.onmessage = (event) => {
+  const message = JSON.parse(event.data);
+  console.log('Received:', message.type, message.data);
+  
+  switch(message.type) {
+    case 'po_status_change':
+      updatePODisplay(message.data);
+      break;
+    case 'new_alert':
+      showAlertNotification(message.data);
+      break;
+    case 'grn_received':
+      refreshInventoryDisplay();
+      break;
+  }
+};
+
+// Keep connection alive
+setInterval(() => {
+  if (ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: 'ping' }));
+  }
+}, 30000); // Every 30 seconds
+
+// Handle errors
+ws.onerror = (error) => {
+  console.error('WebSocket error:', error);
+};
+
+// Handle disconnect
+ws.onclose = () => {
+  console.log('WebSocket disconnected');
+  // Reconnect logic here
+};
+```
+
+---
+
+## 17. Notifications
+
+### Notification Endpoints Reference
+
+| Action | Method | URL | Role Required |
+|--------|--------|-----|---------------|
+| Get Config | `GET` | `/api/v1/notifications/config` | Any authenticated |
+| Check PO Delivery | `POST` | `/api/v1/notifications/po/{po_id}/check-delivery` | Any authenticated |
+| Check Quantity Discrepancy | `POST` | `/api/v1/notifications/po/{po_id}/check-quantity-discrepancy` | Any authenticated |
+| Send Receipt Confirmation | `POST` | `/api/v1/notifications/grn/{grn_id}/receipt-confirmation` | Any authenticated |
+| Check All PO Deliveries | `POST` | `/api/v1/notifications/check-all-po-deliveries` | Any authenticated |
+| Check All Discrepancies | `POST` | `/api/v1/notifications/check-all-quantity-discrepancies` | Any authenticated |
+| Get Notification History | `GET` | `/api/v1/notifications/history` | Any authenticated |
+| Get In-App Notifications | `GET` | `/api/v1/notifications/in-app` | Any authenticated |
+
+---
+
+### Get Notification Configuration
+
+Get notification settings and alert thresholds.
+
+```
+GET /api/v1/notifications/config
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "email_enabled": false,
+  "po_auto_approve_threshold": 5000.0,
+  "po_standard_approval_threshold": 25000.0,
+  "po_high_value_threshold": 100000.0,
+  "delivery_alert_days": 7,
+  "quantity_variance_threshold": 5.0,
+  "critical_variance_threshold": 10.0
+}
+```
+
+---
+
+### Check PO Delivery Alert
+
+Check and send delivery date approaching alert for a specific PO.
+
+```
+POST /api/v1/notifications/po/123/check-delivery
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "message": "Delivery alert sent to 3 recipient(s)",
+  "alert_sent": true,
+  "days_remaining": 5
+}
+```
+
+---
+
+### Check PO Quantity Discrepancy
+
+Check and send quantity variance alerts for a PO.
+
+```
+POST /api/v1/notifications/po/123/check-quantity-discrepancy
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "message": "Quantity discrepancy alerts sent for 2 item(s)",
+  "alerts_sent": 6,
+  "discrepancies": [
+    {
+      "material_id": 45,
+      "material_name": "Titanium Alloy Ti-6Al-4V",
+      "variance_percentage": -7.5
+    },
+    {
+      "material_id": 67,
+      "material_name": "Aluminum 7075",
+      "variance_percentage": 3.2
+    }
+  ]
+}
+```
+
+---
+
+### Send Material Receipt Confirmation
+
+Send receipt confirmation notification when materials are received.
+
+```
+POST /api/v1/notifications/grn/456/receipt-confirmation
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "message": "Receipt confirmation sent to 4 recipient(s)",
+  "notifications_sent": 4
+}
+```
+
+---
+
+### Check All PO Deliveries
+
+Automatically check all POs for approaching delivery dates.
+
+```
+POST /api/v1/notifications/check-all-po-deliveries?days_ahead=7
+Authorization: Bearer <access_token>
+```
+
+**Query Parameters:**
+- `days_ahead` (optional): Check POs with delivery within N days (default: 7)
+
+**Response:**
+```json
+{
+  "message": "Checked 12 PO(s), sent 18 alert(s)",
+  "pos_checked": 12,
+  "alerts_sent": 18
+}
+```
+
+---
+
+### Check All Quantity Discrepancies
+
+Automatically check all POs for quantity discrepancies.
+
+```
+POST /api/v1/notifications/check-all-quantity-discrepancies
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "message": "Found 5 discrepancy(ies), sent 15 alert(s)",
+  "discrepancies_found": 5,
+  "alerts_sent": 15
+}
+```
+
+---
+
+### Get Notification History
+
+Get email notification history/log.
+
+```
+GET /api/v1/notifications/history?limit=50
+Authorization: Bearer <access_token>
+```
+
+**Query Parameters:**
+- `limit` (optional): Number of entries to return (default: 50, max: 200)
+
+**Response:**
+```json
+{
+  "total_notifications": 125,
+  "notifications": [
+    {
+      "timestamp": "2026-01-23T10:30:00Z",
+      "to": "director@company.com",
+      "cc": null,
+      "subject": "[Action Required] PO PO-2026-001 Pending Your Approval",
+      "sent": true,
+      "error": null
+    },
+    {
+      "timestamp": "2026-01-23T09:15:00Z",
+      "to": "store@company.com",
+      "cc": null,
+      "subject": "[Confirmed] Material Received - GRN GRN-2026-001",
+      "sent": true,
+      "error": null
+    }
+  ]
+}
+```
+
+---
+
+### Get In-App Notifications
+
+Get in-app notifications (alerts) for the current user.
+
+```
+GET /api/v1/notifications/in-app?alert_types=po_pending_approval,quantity_mismatch&severities=critical,warning&unread_only=false
+Authorization: Bearer <access_token>
+```
+
+**Query Parameters:**
+- `alert_types` (optional): Comma-separated list of alert types
+- `severities` (optional): Comma-separated list (critical, warning, info)
+- `unread_only` (optional): Only return unacknowledged alerts (default: false)
+
+**Response:**
+```json
+{
+  "total_alerts": 15,
+  "critical_count": 3,
+  "warning_count": 8,
+  "info_count": 4,
+  "po_pending_approvals": 2,
+  "quantity_mismatches": 1,
+  "delayed_deliveries": 3,
+  "low_stock_items": 5,
+  "alerts": [
+    {
+      "id": "a1b2c3d4",
+      "type": "po_pending_approval",
+      "severity": "critical",
+      "title": "PO PO-2026-001 Pending Approval",
+      "message": "Purchase Order PO-2026-001 has been pending approval for 4 day(s)",
+      "entity_type": "purchase_order",
+      "entity_id": 123,
+      "entity_reference": "PO-2026-001",
+      "created_at": "2026-01-19T10:30:00Z",
+      "acknowledged": false
+    }
+  ]
+}
+```
+
+---
+
+### Email Notification Templates
+
+The system sends email notifications for:
+
+1. **PO Pending Approval** - Sent to approvers when PO needs review
+2. **PO Approved** - Sent to requestor when PO is approved
+3. **PO Rejected** - Sent to requestor with rejection reason
+4. **PO Delivery Approaching** - Sent when delivery is within 7 days
+5. **Material Receipt Confirmation** - Sent when materials are received against PO
+6. **PO Quantity Discrepancy** - Sent when variance > 5% (critical if > 10%)
+7. **Material Inspection Required** - Sent to QA when material needs inspection
+8. **Workflow Escalation** - Sent when approval is overdue
+
+> **Note**: Email notifications are disabled by default. Enable by setting `EMAIL_ENABLED=true` in `.env` file and configuring SMTP settings.
 
 ---
 

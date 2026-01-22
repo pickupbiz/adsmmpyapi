@@ -11,16 +11,25 @@ A comprehensive FastAPI application for managing aerospace parts, materials, sup
 - **Inventory Tracking** - Full lot/batch traceability with transaction history
 - **Certification Management** - Track industry certifications and material compliance
 - **Order Management** - Procurement workflow with approval process
+- **Purchase Order Management** - Complete PO lifecycle with approval workflows
+- **Barcode & QR Code** - Generate and scan barcodes for material tracking
+- **Workflow Management** - Configurable approval workflows for PO and material movements
+- **Dashboard & Analytics** - Real-time dashboards with PO insights and supplier performance
+- **Reporting** - PDF, Excel, and CSV export capabilities
+- **WebSocket** - Real-time updates for PO status, materials, and alerts
 
 ## User Roles
 
-| Role       | Permissions                                           |
-|------------|-------------------------------------------------------|
-| Admin      | Full system access, user management                   |
-| Manager    | Manage suppliers, orders, approve transactions        |
-| Engineer   | Manage materials, parts, certifications               |
-| Technician | Manage inventory, receive materials                   |
-| Viewer     | Read-only access to all resources                     |
+| Role              | Permissions                                                    |
+|-------------------|----------------------------------------------------------------|
+| Director          | Full system access, high-value approvals, user management      |
+| Head of Operations| Operations approvals, workflow management                       |
+| Purchase          | PO creation, supplier management, procurement                   |
+| Store             | Material receipt, inventory management, GRN processing          |
+| QA                | Quality inspections, material certifications                    |
+| Engineer          | Material/parts management, BOM creation, technical specs        |
+| Technician        | Inventory operations, material handling                         |
+| Viewer            | Read-only access to all resources                              |
 
 ## Project Structure
 
@@ -240,6 +249,121 @@ curl -X GET "http://localhost:5055/api/v1/materials" \
 - `POST /api/v1/orders/{id}/submit` - Submit for approval
 - `POST /api/v1/orders/{id}/approve` - Approve order
 
+### Purchase Orders (Enhanced)
+- `GET /api/v1/purchase-orders` - List POs with filtering
+- `POST /api/v1/purchase-orders` - Create PO
+- `GET /api/v1/purchase-orders/{id}` - Get PO details
+- `PUT /api/v1/purchase-orders/{id}` - Update PO
+- `POST /api/v1/purchase-orders/{id}/submit` - Submit for approval
+- `POST /api/v1/purchase-orders/{id}/approve` - Approve PO
+- `POST /api/v1/purchase-orders/{id}/reject` - Reject PO
+- `POST /api/v1/purchase-orders/{id}/grn` - Create Goods Receipt Note
+
+### Dashboard & Analytics
+- `GET /api/v1/dashboard/overview` - Complete dashboard overview
+- `GET /api/v1/dashboard/po-summary` - PO status summary
+- `GET /api/v1/dashboard/material-summary` - Material status summary
+- `GET /api/v1/dashboard/inventory-summary` - Inventory status
+- `GET /api/v1/dashboard/po-vs-received` - PO vs received comparison
+- `GET /api/v1/dashboard/delivery-analytics` - Delivery performance
+- `GET /api/v1/dashboard/lead-time` - PO-to-production lead time
+- `GET /api/v1/dashboard/supplier-performance` - Supplier analytics
+- `GET /api/v1/dashboard/project-consumption` - Project-wise consumption
+- `GET /api/v1/dashboard/material-movement` - Material movement history
+- `GET /api/v1/dashboard/stock-analysis` - Fast-moving & low stock analysis
+- `GET /api/v1/dashboard/alerts` - Active alerts
+
+### Reports (PDF, Excel, CSV)
+- `POST /api/v1/reports/po` - Generate PO report
+- `POST /api/v1/reports/materials` - Generate material report
+- `POST /api/v1/reports/inventory` - Generate inventory report
+- `POST /api/v1/reports/suppliers` - Generate supplier performance report
+- `POST /api/v1/reports/project-consumption` - Generate project consumption report
+- `GET /api/v1/reports/download/{filename}` - Download generated report
+- `GET /api/v1/reports/export/po-csv` - Quick PO CSV export
+- `GET /api/v1/reports/export/inventory-csv` - Quick inventory CSV export
+- `GET /api/v1/reports/export/materials-csv` - Quick materials CSV export
+
+### WebSocket (Real-time Updates)
+- `WS /api/v1/ws?token=<jwt>` - WebSocket connection for real-time updates
+
+### Barcodes
+- `POST /api/v1/barcodes/generate` - Generate barcode
+- `POST /api/v1/barcodes/scan` - Process barcode scan
+- `POST /api/v1/barcodes/scan-to-receive` - Scan to receive material
+- `GET /api/v1/barcodes/{id}/traceability` - Get material traceability
+
+### Workflows
+- `GET /api/v1/workflows/templates` - List workflow templates
+- `POST /api/v1/workflows/templates` - Create workflow template
+- `GET /api/v1/workflows/pending` - Get pending approvals
+- `POST /api/v1/workflows/instances/{id}/approve` - Approve workflow step
+- `POST /api/v1/workflows/instances/{id}/reject` - Reject workflow
+
+## WebSocket Real-time Updates
+
+Connect to the WebSocket endpoint for real-time notifications:
+
+```javascript
+// Connect with authentication token
+const ws = new WebSocket('ws://localhost:5055/api/v1/ws?token=YOUR_JWT_TOKEN');
+
+ws.onmessage = (event) => {
+  const message = JSON.parse(event.data);
+  console.log('Received:', message.type, message.data);
+};
+
+// Subscribe to specific entity updates
+ws.send(JSON.stringify({
+  type: 'subscribe',
+  entity_type: 'purchase_order',
+  entity_id: 123
+}));
+
+// Ping to keep connection alive
+ws.send(JSON.stringify({ type: 'ping' }));
+```
+
+### Message Types Received:
+- `po_status_change` - PO status updates
+- `material_status_change` - Material lifecycle changes
+- `new_alert` - New system alerts
+- `inventory_update` - Stock level changes
+- `approval_required` - New approval requests
+- `grn_received` - Goods receipt notifications
+- `inspection_complete` - Inspection results
+
+## Report Generation
+
+Generate reports in PDF, Excel, or CSV format:
+
+```bash
+# Generate PO Report (PDF)
+curl -X POST "http://localhost:5055/api/v1/reports/po" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"date_range": "last_30_days", "format": "pdf"}'
+
+# Generate Inventory Report (Excel)
+curl -X POST "http://localhost:5055/api/v1/reports/inventory?format=excel" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Quick CSV Export
+curl -X GET "http://localhost:5055/api/v1/reports/export/inventory-csv" \
+  -H "Authorization: Bearer $TOKEN" \
+  -o inventory_export.csv
+```
+
+## Alert Types
+
+The system generates the following alerts:
+- **PO Pending Approval** - POs waiting for approval
+- **Quantity Mismatch** - PO vs received quantity variance
+- **Delayed Delivery** - Overdue POs
+- **Fast-Moving Material** - Materials with low stock days
+- **Low Stock** - Items below reorder level
+- **Inspection Pending** - Materials awaiting QA inspection
+
 ## Database Migrations
 
 ```bash
@@ -254,6 +378,30 @@ alembic downgrade -1
 
 # View migration history
 alembic history
+```
+
+## Environment Variables
+
+```env
+# Database
+DATABASE_URL=postgresql://postgres:password@localhost:5432/aerospace_parts
+
+# Security
+SECRET_KEY=your-super-secret-key-change-in-production
+DEBUG=True
+
+# Email Notifications (optional)
+EMAIL_ENABLED=False
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+FROM_EMAIL=noreply@aerospace-materials.com
+
+# Workflow Thresholds (USD)
+PO_AUTO_APPROVE_THRESHOLD=5000.0
+PO_STANDARD_APPROVAL_THRESHOLD=25000.0
+PO_HIGH_VALUE_THRESHOLD=100000.0
 ```
 
 ## License
