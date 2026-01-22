@@ -154,9 +154,9 @@ def check_po_quantity_discrepancy(
     sent_count = 0
     
     for line_item in po.line_items:
-        if line_item.received_quantity != line_item.quantity:
-            variance = line_item.quantity - line_item.received_quantity
-            variance_pct = float(variance / line_item.quantity * 100) if line_item.quantity > 0 else 0
+        if line_item.quantity_received != line_item.quantity_ordered:
+            variance = line_item.quantity_ordered - line_item.quantity_received
+            variance_pct = float(variance / line_item.quantity_ordered * 100) if line_item.quantity_ordered > 0 else 0
             
             # Alert if variance > 5%
             if abs(variance_pct) > 5:
@@ -184,8 +184,8 @@ def check_po_quantity_discrepancy(
                         recipient_name=name,
                         po_number=po.po_number,
                         material_name=material_name,
-                        ordered_quantity=float(line_item.quantity),
-                        received_quantity=float(line_item.received_quantity),
+                        ordered_quantity=float(line_item.quantity_ordered),
+                        received_quantity=float(line_item.quantity_received),
                         variance=float(variance),
                         variance_percentage=variance_pct,
                         po_url=f"/purchase-orders/{po_id}"
@@ -401,8 +401,8 @@ def check_all_quantity_discrepancies(
                             recipient_name=name,
                             po_number=po.po_number,
                             material_name=material_name,
-                            ordered_quantity=float(line_item.quantity),
-                            received_quantity=float(line_item.received_quantity),
+                            ordered_quantity=float(line_item.quantity_ordered),
+                            received_quantity=float(line_item.quantity_received),
                             variance=float(variance),
                             variance_percentage=variance_pct,
                             po_url=f"/purchase-orders/{po.id}"

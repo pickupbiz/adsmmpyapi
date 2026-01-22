@@ -119,9 +119,9 @@ class AlertService:
         
         for po in pos_with_receipts:
             for line_item in po.line_items:
-                if line_item.received_quantity != line_item.quantity:
-                    variance = line_item.quantity - line_item.received_quantity
-                    variance_pct = (variance / line_item.quantity * 100) if line_item.quantity > 0 else 0
+                if line_item.quantity_received != line_item.quantity_ordered:
+                    variance = line_item.quantity_ordered - line_item.quantity_received
+                    variance_pct = (variance / line_item.quantity_ordered * 100) if line_item.quantity_ordered > 0 else 0
                     
                     if abs(variance_pct) > 10:
                         severity = AlertSeverity.CRITICAL
@@ -134,15 +134,15 @@ class AlertService:
                         alert_type=AlertType.QUANTITY_MISMATCH,
                         severity=severity,
                         title=f"Quantity Mismatch on PO {po.po_number}",
-                        message=f"Material ID {line_item.material_id}: Ordered {line_item.quantity}, Received {line_item.received_quantity} ({variance_pct:.1f}% variance)",
+                        message=f"Material ID {line_item.material_id}: Ordered {line_item.quantity_ordered}, Received {line_item.quantity_received} ({variance_pct:.1f}% variance)",
                         entity_type="po_line_item",
                         entity_id=line_item.id,
                         entity_reference=po.po_number,
                         data={
                             "po_id": po.id,
                             "material_id": line_item.material_id,
-                            "ordered_quantity": float(line_item.quantity),
-                            "received_quantity": float(line_item.received_quantity),
+                            "ordered_quantity": float(line_item.quantity_ordered),
+                            "received_quantity": float(line_item.quantity_received),
                             "variance": float(variance),
                             "variance_percentage": float(variance_pct)
                         }

@@ -146,8 +146,8 @@ def get_po_vs_received_comparison(
         has_mismatch = False
         
         for line in po.line_items:
-            variance = line.quantity - line.received_quantity
-            variance_pct = float(variance / line.quantity * 100) if line.quantity > 0 else 0
+            variance = line.quantity_ordered - line.quantity_received
+            variance_pct = float(variance / line.quantity_ordered * 100) if line.quantity_ordered > 0 else 0
             
             # Get material name
             material = db.query(Material).filter(Material.id == line.material_id).first()
@@ -167,8 +167,8 @@ def get_po_vs_received_comparison(
                 status="match" if abs(variance_pct) <= 1 else ("over" if variance < 0 else "under")
             ))
             
-            total_ordered += line.quantity
-            total_received += line.received_quantity
+            total_ordered += line.quantity_ordered
+            total_received += line.quantity_received
         
         if mismatch_only and not has_mismatch:
             continue
@@ -698,7 +698,7 @@ def get_stock_analysis(
         expected_date = None
         if pending_po:
             items_with_pending += 1
-            pending_qty = pending_po.quantity - pending_po.received_quantity
+            pending_qty = pending_po.quantity_ordered - pending_po.quantity_received
             po = db.query(PurchaseOrder).filter(PurchaseOrder.id == pending_po.po_id).first()
             expected_date = po.expected_delivery_date if po else None
         

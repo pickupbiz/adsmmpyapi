@@ -94,11 +94,11 @@ def generate_po_report(
                 material = db.query(Material).filter(Material.id == line.material_id).first()
                 po_dict['line_items'].append({
                     'material_name': material.name if material else f'Material #{line.material_id}',
-                    'quantity': float(line.quantity),
+                    'quantity': float(line.quantity_ordered),
                     'unit': line.unit,
                     'unit_price': float(line.unit_price),
                     'total_price': float(line.total_price),
-                    'received_quantity': float(line.received_quantity),
+                    'received_quantity': float(line.quantity_received),
                     'status': line.status.value if line.status else 'pending'
                 })
         
