@@ -2911,6 +2911,346 @@ The QR code contains JSON data with the following fields:
 
 ---
 
+## 13. Workflow Management with PO Approval
+
+### Workflow Endpoints Reference
+
+| Method | Endpoint | Description | Required Role |
+|--------|----------|-------------|---------------|
+| GET | `/workflows/templates` | List workflow templates | Any role |
+| POST | `/workflows/templates` | Create workflow template | Director |
+| GET | `/workflows/templates/{id}` | Get template details | Any role |
+| PUT | `/workflows/templates/{id}` | Update template | Director |
+| POST | `/workflows/templates/{id}/steps` | Add workflow step | Director |
+| GET | `/workflows/instances` | List workflow instances | Any role |
+| POST | `/workflows/instances` | Create workflow instance | Any role |
+| GET | `/workflows/instances/{id}` | Get instance details | Any role |
+| POST | `/workflows/instances/{id}/approve` | Approve/reject workflow | Based on step |
+| POST | `/workflows/instances/{id}/cancel` | Cancel workflow | Requestor/Admin |
+| POST | `/workflows/po/{po_id}/submit` | Submit PO for approval | Purchase |
+| GET | `/workflows/po/{po_id}/approval-status` | Get PO approval status | Any role |
+| POST | `/workflows/material-issue/{id}/submit` | Submit material issue | Store |
+| POST | `/workflows/quality-inspection/{id}/approve` | QA inspection approval | QA |
+| GET | `/workflows/my-approvals` | Get pending approvals | Any role |
+| GET | `/workflows/audit-trail/{type}/{id}` | Get audit trail | Any role |
+
+### Approval Thresholds
+
+| Level | Amount | Required Approvers |
+|-------|--------|-------------------|
+| Auto-approve | < $5,000 | None (auto-approved) |
+| Standard | < $25,000 | Head of Operations |
+| High | < $100,000 | Head of Operations + Director |
+| Critical | > $100,000 | Head of Operations + Director |
+
+### Submit PO for Approval
+
+```http
+POST /api/v1/workflows/po/1/submit
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "notes": "Urgent material required for Project ABC"
+}
+```
+
+**Response:**
+```json
+{
+    "id": 1,
+    "template_id": 1,
+    "reference_type": "purchase_order",
+    "reference_id": 1,
+    "reference_number": "PO-2026-001",
+    "status": "pending",
+    "current_step": 1,
+    "amount": 45000.00,
+    "currency": "USD",
+    "requested_by": 3,
+    "requested_at": "2026-01-23T10:00:00.000000",
+    "due_date": "2026-01-25T10:00:00.000000",
+    "priority": "high",
+    "extra_data": {
+        "supplier_name": "Aerospace Metals Inc.",
+        "po_date": "2026-01-23",
+        "line_item_count": 5
+    },
+    "notes": "Urgent material required for Project ABC"
+}
+```
+
+### Approve/Reject Workflow
+
+```http
+POST /api/v1/workflows/instances/1/approve
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "action": "approved",
+    "comments": "Approved. Priority procurement authorized."
+}
+```
+
+**For rejection:**
+```json
+{
+    "action": "rejected",
+    "comments": "Budget exceeded for Q1. Please revise quantities."
+}
+```
+
+**Response:**
+```json
+{
+    "id": 1,
+    "workflow_instance_id": 1,
+    "workflow_step_id": 1,
+    "step_number": 1,
+    "approver_id": 1,
+    "status": "approved",
+    "decision_at": "2026-01-23T11:30:00.000000+00:00",
+    "comments": "Approved. Priority procurement authorized.",
+    "is_escalated": false,
+    "created_at": "2026-01-23T10:00:00.000000+00:00",
+    "updated_at": "2026-01-23T11:30:00.000000+00:00"
+}
+```
+
+### Get PO Approval Status
+
+```http
+GET /api/v1/workflows/po/1/approval-status
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+{
+    "po_number": "PO-2026-001",
+    "po_status": "approved",
+    "total_amount": 45000.00,
+    "currency": "USD",
+    "workflow": {
+        "id": 1,
+        "status": "approved",
+        "current_step": 2,
+        "approvals": [
+            {
+                "step": 1,
+                "status": "approved",
+                "approver": "John Operations",
+                "decision_at": "2026-01-23T11:30:00",
+                "comments": "Approved. Priority procurement authorized."
+            },
+            {
+                "step": 2,
+                "status": "approved",
+                "approver": "Jane Director",
+                "decision_at": "2026-01-23T14:00:00",
+                "comments": "Final approval granted."
+            }
+        ]
+    },
+    "history": [
+        {
+            "action": "approved",
+            "user": "Jane Director",
+            "from_status": "pending_approval",
+            "to_status": "approved",
+            "comments": "Final approval granted.",
+            "timestamp": "2026-01-23T14:00:00"
+        },
+        {
+            "action": "submitted",
+            "user": "Mike Purchase",
+            "from_status": "draft",
+            "to_status": "pending_approval",
+            "comments": "Urgent material required",
+            "timestamp": "2026-01-23T10:00:00"
+        }
+    ]
+}
+```
+
+### Submit Material Issue for Approval
+
+```http
+POST /api/v1/workflows/material-issue/1/submit
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "notes": "Material required for Work Order WO-2026-015"
+}
+```
+
+### QA Inspection Approval
+
+```http
+POST /api/v1/workflows/quality-inspection/1/approve
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "passed": true,
+    "inspection_notes": "Material meets specification. COC verified. Dimensions within tolerance."
+}
+```
+
+**For failed inspection:**
+```json
+{
+    "passed": false,
+    "inspection_notes": "Material failed hardness test. NCR-2026-001 raised."
+}
+```
+
+### Get My Pending Approvals (Dashboard)
+
+```http
+GET /api/v1/workflows/my-approvals
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+{
+    "workflow_approvals": [
+        {
+            "approval_id": 5,
+            "instance_id": 3,
+            "reference_type": "purchase_order",
+            "reference_number": "PO-2026-003",
+            "amount": 75000.00,
+            "currency": "USD",
+            "requested_at": "2026-01-23T09:00:00",
+            "priority": "high"
+        }
+    ],
+    "pending_pos": [
+        {
+            "id": 3,
+            "po_number": "PO-2026-003",
+            "total_amount": 75000.00,
+            "currency": "USD",
+            "created_at": "2026-01-23T08:30:00"
+        }
+    ],
+    "pending_inspections": [
+        {
+            "id": 10,
+            "item_number": "MI-2026-00010",
+            "material_id": 5,
+            "quantity": 50.0,
+            "received_date": "2026-01-22"
+        }
+    ],
+    "total_pending": 3
+}
+```
+
+### Get Audit Trail
+
+```http
+GET /api/v1/workflows/audit-trail/purchase_order/1?limit=20
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+[
+    {
+        "id": 15,
+        "action": "APPROVE",
+        "user": "Jane Director",
+        "description": "Approved workflow step 2",
+        "old_values": {"status": "in_review"},
+        "new_values": {"status": "approved", "comments": "Final approval granted."},
+        "timestamp": "2026-01-23T14:00:00",
+        "ip_address": "192.168.1.100"
+    },
+    {
+        "id": 12,
+        "action": "APPROVE",
+        "user": "John Operations",
+        "description": "Approved workflow step 1",
+        "old_values": {"status": "pending"},
+        "new_values": {"status": "in_review", "comments": "Approved. Priority procurement authorized."},
+        "timestamp": "2026-01-23T11:30:00",
+        "ip_address": "192.168.1.101"
+    },
+    {
+        "id": 10,
+        "action": "SUBMIT",
+        "user": "Mike Purchase",
+        "description": "Submitted PO PO-2026-001 for approval (Amount: USD 45000.00)",
+        "old_values": null,
+        "new_values": {"status": "pending_approval", "workflow_id": 1},
+        "timestamp": "2026-01-23T10:00:00",
+        "ip_address": "192.168.1.102"
+    }
+]
+```
+
+### Role-Based Approval Permissions
+
+| Role | Can Approve | Amount Limit | Special Permissions |
+|------|-------------|--------------|---------------------|
+| **Director** | All workflows | Unlimited | Final approval on all POs |
+| **Head of Operations** | PO, Material Issue | $100,000 | Operations workflows |
+| **Purchase** | Supplier, Material | $25,000 | PO creation, supplier approvals |
+| **Store** | Material Movement | $10,000 | Material receipt, issue |
+| **QA** | Quality Inspection | $50,000 | Inspection pass/fail |
+
+### Workflow Status Flow
+
+```
+PO APPROVAL WORKFLOW:
+━━━━━━━━━━━━━━━━━━━━━
+Draft → Submit (Purchase)
+    ↓
+Pending Approval → Step 1: Head of Operations Review
+    ↓
+    ├─→ Approved → Amount > $25K? → Step 2: Director Review
+    │                    ↓
+    │               └─→ Approved → PO Ready to Order
+    │               └─→ Rejected → PO Rejected
+    │
+    └─→ Rejected → PO Rejected (back to Draft for revision)
+
+MATERIAL ISSUE WORKFLOW:
+━━━━━━━━━━━━━━━━━━━━━━━━
+Create Allocation (Store)
+    ↓
+Submit for Approval → Step 1: Supervisor Review
+    ↓
+    ├─→ Approved → Material Issued
+    └─→ Rejected → Allocation Cancelled
+
+QUALITY INSPECTION:
+━━━━━━━━━━━━━━━━━━━
+Material Received → In Inspection
+    ↓
+QA Inspection
+    ├─→ Passed → In Storage (available for use)
+    └─→ Failed → Rejected (NCR process)
+```
+
+### Email Notifications
+
+The system sends email notifications for:
+- **PO Pending Approval**: Sent to approvers when a PO needs review
+- **PO Approved**: Sent to requestor when PO is approved
+- **PO Rejected**: Sent to requestor with rejection reason
+- **Material Inspection Required**: Sent to QA when material needs inspection
+- **Workflow Escalation**: Sent when approval is overdue
+
+> **Note**: Email notifications are disabled by default. Enable in production by setting `EMAIL_ENABLED=true` in configuration.
+
+---
+
 ## Common Errors & Solutions
 
 | Error | Cause | Solution |

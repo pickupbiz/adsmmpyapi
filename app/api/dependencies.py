@@ -169,6 +169,7 @@ class AsyncRoleChecker:
 # Note: ADMIN is a legacy role with same privileges as DIRECTOR
 require_director = RoleChecker([UserRole.ADMIN, UserRole.DIRECTOR])
 require_head_ops = RoleChecker([UserRole.ADMIN, UserRole.DIRECTOR, UserRole.HEAD_OF_OPERATIONS])
+require_head_of_operations = require_head_ops  # Alias for backwards compatibility
 require_manager = RoleChecker([UserRole.ADMIN, UserRole.DIRECTOR, UserRole.HEAD_OF_OPERATIONS])
 require_purchase = RoleChecker([UserRole.ADMIN, UserRole.DIRECTOR, UserRole.HEAD_OF_OPERATIONS, UserRole.PURCHASE])
 require_store = RoleChecker([UserRole.ADMIN, UserRole.DIRECTOR, UserRole.HEAD_OF_OPERATIONS, UserRole.STORE])
@@ -188,6 +189,7 @@ require_any_role = RoleChecker([
 # Note: ADMIN is a legacy role with same privileges as DIRECTOR
 require_director_async = AsyncRoleChecker([UserRole.ADMIN, UserRole.DIRECTOR])
 require_head_ops_async = AsyncRoleChecker([UserRole.ADMIN, UserRole.DIRECTOR, UserRole.HEAD_OF_OPERATIONS])
+require_head_of_operations_async = require_head_ops_async  # Alias for backwards compatibility
 require_purchase_async = AsyncRoleChecker([UserRole.ADMIN, UserRole.DIRECTOR, UserRole.HEAD_OF_OPERATIONS, UserRole.PURCHASE])
 require_store_async = AsyncRoleChecker([UserRole.ADMIN, UserRole.DIRECTOR, UserRole.HEAD_OF_OPERATIONS, UserRole.STORE])
 require_qa_async = AsyncRoleChecker([UserRole.ADMIN, UserRole.DIRECTOR, UserRole.HEAD_OF_OPERATIONS, UserRole.QA])

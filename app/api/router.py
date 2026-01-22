@@ -11,7 +11,8 @@ from app.api.endpoints import (
     orders,
     purchase_orders,
     material_instances,
-    barcodes
+    barcodes,
+    workflows
 )
 
 api_router = APIRouter()
@@ -28,3 +29,4 @@ api_router.include_router(orders.router)
 api_router.include_router(purchase_orders.router)
 api_router.include_router(material_instances.router)
 api_router.include_router(barcodes.router)
+api_router.include_router(workflows.router)
