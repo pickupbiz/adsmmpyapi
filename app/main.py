@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from app.core.config import settings
 from app.api.router import api_router
-from app.db.session import engine
+from app.db.session import sync_engine
 from app.db.base import Base
 
 
@@ -13,7 +13,7 @@ async def lifespan(app: FastAPI):
     """Application lifespan events."""
     # Startup: Create tables if they don't exist (for development)
     # In production, use Alembic migrations instead
-    # Base.metadata.create_all(bind=engine)
+    # Base.metadata.create_all(bind=sync_engine)
     yield
     # Shutdown
     pass

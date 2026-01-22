@@ -19,8 +19,27 @@ Base URL: `http://localhost:5055/api/v1`
 
 ## Authentication
 
+### Quick Reference - Auth Endpoints
+
+| Action | Method | URL |
+|--------|--------|-----|
+| Login | `POST` | `/api/v1/auth/login` |
+| Logout | `POST` | `/api/v1/auth/logout` |
+| Refresh Token | `POST` | `/api/v1/auth/refresh` |
+| Get Current User | `GET` | `/api/v1/auth/me` |
+| Validate Token | `GET` | `/api/v1/auth/validate` |
+| Get Permissions | `GET` | `/api/v1/auth/permissions` |
+| Change Password | `POST` | `/api/v1/auth/change-password` |
+| Login History | `GET` | `/api/v1/auth/login-history` |
+| All Login History | `GET` | `/api/v1/auth/all-login-history` |
+| Register User | `POST` | `/api/v1/auth/register` |
+
+> ⚠️ **Note:** All auth endpoints are under `/api/v1/auth/` prefix. Don't forget the `/auth/` part!
+
+---
+
 ### Login
-Get JWT access and refresh tokens.
+Get JWT access and refresh tokens with role-based permissions.
 
 ```
 POST /api/v1/auth/login
@@ -29,7 +48,7 @@ Content-Type: application/x-www-form-urlencoded
 
 **Request Body (form-urlencoded):**
 ```
-username=azra@pickupbiz.com&password=12345
+username=director@pickupbiz.com&password=12345
 ```
 
 **Response:**
@@ -40,6 +59,12 @@ username=azra@pickupbiz.com&password=12345
   "token_type": "bearer"
 }
 ```
+
+**JWT Token Payload Contains:**
+- `sub`: User ID
+- `role`: User's role (director, head_of_operations, store, purchase, qa, engineer, technician, viewer)
+- `exp`: Token expiration time
+- `type`: "access" or "refresh"
 
 ---
 
@@ -71,13 +96,17 @@ Authorization: Bearer <access_token>
 ```json
 {
   "id": 1,
-  "email": "azra@pickupbiz.com",
+  "email": "director@pickupbiz.com",
   "full_name": "Admin User",
   "employee_id": null,
-  "department": null,
-  "role": "admin",
+  "phone": null,
+  "department": "ADMINISTRATION",
+  "designation": null,
+  "role": "director",
   "is_active": true,
   "is_superuser": true,
+  "can_approve_workflows": true,
+  "approval_limit": null,
   "last_login": "2026-01-22T10:30:00",
   "notes": null,
   "created_at": "2026-01-22T10:00:00",
@@ -87,7 +116,152 @@ Authorization: Bearer <access_token>
 
 ---
 
-### Register New User (Admin Only)
+### Validate Token
+Check if the current JWT token is valid.
+
+```
+GET /api/v1/auth/validate
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "valid": true,
+  "user_id": 1,
+  "email": "director@pickupbiz.com",
+  "role": "director",
+  "is_superuser": true
+}
+```
+
+---
+
+### Get User Permissions
+Get current user's role-based permissions.
+
+```
+GET /api/v1/auth/permissions
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "user_id": 1,
+  "email": "director@pickupbiz.com",
+  "role": "director",
+  "role_description": "Full system access - can perform all operations",
+  "is_superuser": true,
+  "can_approve_workflows": true,
+  "approval_limit": null,
+  "permissions": ["ALL"]
+}
+```
+
+**Permissions by Role:**
+
+| Role | Permissions |
+|------|-------------|
+| **Director** | Full access: manage_users, manage_materials, manage_parts, manage_suppliers, manage_inventory, manage_orders, manage_certifications, approve_workflows, view_reports, manage_projects, manage_bom, manage_qa, view_audit_logs, system_settings |
+| **Head of Operations** | view_materials, view_parts, view_suppliers, view_inventory, manage_orders, view_certifications, approve_workflows, view_reports, manage_projects, view_audit_logs |
+| **Store** | view_materials, view_parts, manage_inventory, receive_materials, issue_materials, stocktake, view_orders, manage_barcodes |
+| **Purchase** | view_materials, view_parts, manage_suppliers, manage_orders, view_inventory, create_requisitions, view_certifications |
+| **QA** | view_materials, view_parts, manage_certifications, quality_checks, approve_materials, reject_materials, view_inventory, view_suppliers, manage_qa_workflows |
+| **Engineer** | manage_materials, manage_parts, view_suppliers, view_inventory, manage_bom, view_certifications, technical_approvals |
+| **Technician** | view_materials, view_parts, view_inventory, record_usage, scan_barcodes, view_work_orders |
+| **Viewer** | view_materials, view_parts, view_suppliers, view_inventory, view_orders, view_certifications, view_reports |
+
+---
+
+### Logout
+Logout current user (logs the session end).
+
+```
+POST /api/v1/auth/logout
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "message": "Successfully logged out"
+}
+```
+
+**Note:** Since JWT tokens are stateless, the client should discard tokens after calling this endpoint. For complete session invalidation, implement a token blacklist.
+
+---
+
+### Get Login History
+Get login history for current user (security auditing).
+
+```
+GET /api/v1/auth/login-history?limit=10
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "user_id": 1,
+  "login_history": [
+    {
+      "login_at": "2026-01-22T15:30:00",
+      "ip_address": "192.168.1.100",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)...",
+      "success": true,
+      "failure_reason": null,
+      "is_logout": false
+    },
+    {
+      "login_at": "2026-01-22T14:00:00",
+      "ip_address": "192.168.1.100",
+      "user_agent": "PostmanRuntime/7.32.0",
+      "success": false,
+      "failure_reason": "Invalid password",
+      "is_logout": false
+    }
+  ]
+}
+```
+
+---
+
+### Get All Login History (Director Only)
+Get login history for all users (security audit).
+
+```
+GET /api/v1/auth/all-login-history?user_id=2&success_only=false&limit=50
+Authorization: Bearer <access_token>
+```
+
+**Query Parameters:**
+- `user_id` (optional): Filter by specific user
+- `success_only` (optional): Only show successful logins
+- `limit` (optional): Number of records to return (default: 50)
+
+**Response:**
+```json
+{
+  "total_records": 25,
+  "login_history": [
+    {
+      "user_id": 2,
+      "login_at": "2026-01-22T15:30:00",
+      "ip_address": "192.168.1.105",
+      "user_agent": "Mozilla/5.0...",
+      "success": true,
+      "failure_reason": null,
+      "is_logout": false
+    }
+  ]
+}
+```
+
+---
+
+### Register New User (Director/Superuser Only)
 ```
 POST /api/v1/auth/register
 Authorization: Bearer <access_token>
@@ -101,11 +275,15 @@ Content-Type: application/json
   "password": "securePassword123",
   "full_name": "John Engineer",
   "employee_id": "EMP-001",
-  "department": "Engineering",
+  "phone": "+1-555-0101",
+  "department": "ENGINEERING",
+  "designation": "Senior Materials Engineer",
   "role": "engineer",
   "is_active": true,
   "is_superuser": false,
-  "notes": "Senior Materials Engineer"
+  "can_approve_workflows": false,
+  "approval_limit": 5000.00,
+  "notes": "Senior Materials Engineer - Titanium specialist"
 }
 ```
 
@@ -116,18 +294,42 @@ Content-Type: application/json
   "email": "john.engineer@company.com",
   "full_name": "John Engineer",
   "employee_id": "EMP-001",
-  "department": "Engineering",
+  "phone": "+1-555-0101",
+  "department": "ENGINEERING",
+  "designation": "Senior Materials Engineer",
   "role": "engineer",
   "is_active": true,
   "is_superuser": false,
+  "can_approve_workflows": false,
+  "approval_limit": 5000.00,
   "last_login": null,
-  "notes": "Senior Materials Engineer",
+  "notes": "Senior Materials Engineer - Titanium specialist",
   "created_at": "2026-01-22T10:45:00",
   "updated_at": "2026-01-22T10:45:00"
 }
 ```
 
-**Available Roles:** `admin`, `manager`, `engineer`, `technician`, `viewer`
+**Available Roles:**
+| Role | Description |
+|------|-------------|
+| `director` | Full system access, final approvals |
+| `head_of_operations` | Operations oversight and management |
+| `store` | Inventory and material movements |
+| `purchase` | Procurement and supplier management |
+| `qa` | Quality assurance and certifications |
+| `engineer` | Technical specifications and parts |
+| `technician` | Floor operations |
+| `viewer` | Read-only access |
+
+**Available Departments:**
+- `OPERATIONS`
+- `PROCUREMENT`
+- `QUALITY_ASSURANCE`
+- `ENGINEERING`
+- `PRODUCTION`
+- `STORES`
+- `FINANCE`
+- `ADMINISTRATION`
 
 ---
 
@@ -144,11 +346,15 @@ Authorization: Bearer <access_token>
 }
 ```
 
+**Requirements:**
+- New password must be at least 8 characters
+- Current password must be verified
+
 ---
 
 ## Users
 
-### List Users (Admin Only)
+### List Users (Director Only)
 ```
 GET /api/v1/users?page=1&page_size=20
 Authorization: Bearer <access_token>
@@ -160,11 +366,17 @@ Authorization: Bearer <access_token>
   "items": [
     {
       "id": 1,
-      "email": "azra@pickupbiz.com",
+      "email": "director@pickupbiz.com",
       "full_name": "Admin User",
-      "role": "admin",
+      "employee_id": null,
+      "phone": null,
+      "department": "ADMINISTRATION",
+      "designation": null,
+      "role": "director",
       "is_active": true,
       "is_superuser": true,
+      "can_approve_workflows": true,
+      "approval_limit": null,
       "created_at": "2026-01-22T10:00:00",
       "updated_at": "2026-01-22T10:00:00"
     }
@@ -186,7 +398,7 @@ Authorization: Bearer <access_token>
 
 ---
 
-### Update User
+### Update User (Director Only)
 ```
 PUT /api/v1/users/2
 Authorization: Bearer <access_token>
@@ -197,18 +409,24 @@ Content-Type: application/json
 ```json
 {
   "full_name": "John Senior Engineer",
-  "department": "Materials Engineering",
-  "role": "manager"
+  "department": "ENGINEERING",
+  "designation": "Principal Engineer",
+  "role": "head_of_operations",
+  "can_approve_workflows": true,
+  "approval_limit": 25000.00,
+  "phone": "+1-555-0102"
 }
 ```
 
 ---
 
-### Delete User
+### Delete User (Director Only)
 ```
 DELETE /api/v1/users/2
 Authorization: Bearer <access_token>
 ```
+
+**Note:** User deletion is soft-delete (sets `is_active: false`) to preserve audit trail.
 
 ---
 
@@ -1352,7 +1570,8 @@ Authorization: Bearer <access_token>
 
 | Entity | Status Values |
 |--------|---------------|
-| User Role | `admin`, `manager`, `engineer`, `technician`, `viewer` |
+| **User Roles** | `director`, `head_of_operations`, `store`, `purchase`, `qa`, `engineer`, `technician`, `viewer` |
+| **Departments** | `OPERATIONS`, `PROCUREMENT`, `QUALITY_ASSURANCE`, `ENGINEERING`, `PRODUCTION`, `STORES`, `FINANCE`, `ADMINISTRATION` |
 | Material Type | `metal`, `composite`, `polymer`, `ceramic`, `alloy`, `coating`, `adhesive`, `other` |
 | Material Status | `active`, `discontinued`, `pending_approval`, `restricted` |
 | Part Status | `design`, `prototype`, `production`, `obsolete`, `restricted` |
@@ -1365,6 +1584,48 @@ Authorization: Bearer <access_token>
 | Certification Status | `active`, `expired`, `pending`, `revoked`, `suspended` |
 | Order Status | `draft`, `pending_approval`, `approved`, `ordered`, `shipped`, `partially_received`, `received`, `cancelled`, `on_hold` |
 | Order Priority | `low`, `normal`, `high`, `critical`, `aog` |
+
+---
+
+## Role-Based Access Control (RBAC)
+
+### Permission Matrix
+
+| Endpoint Category | Director | Head of Ops | Store | Purchase | QA | Engineer | Technician | Viewer |
+|-------------------|----------|-------------|-------|----------|-----|----------|------------|--------|
+| **Users** | Full | View | - | - | - | - | - | - |
+| **Materials** | Full | View | View | View | View | Full | View | View |
+| **Parts** | Full | View | View | View | View | Full | View | View |
+| **Suppliers** | Full | View | - | Full | View | View | - | View |
+| **Inventory** | Full | View | Full | View | View | View | View | View |
+| **Orders** | Full | Full | View | Full | - | - | - | View |
+| **Certifications** | Full | View | - | View | Full | View | - | View |
+| **Workflows** | Approve | Approve | - | - | Approve | - | - | - |
+| **Projects** | Full | Full | - | - | - | View | - | View |
+| **Audit Logs** | Full | View | - | - | - | - | - | - |
+
+### Authentication Flow
+
+```
+1. POST /auth/login (username, password)
+   ↓
+2. Receive access_token + refresh_token
+   ↓
+3. Include token in Authorization header: "Bearer <token>"
+   ↓
+4. Token expires → POST /auth/refresh with refresh_token
+   ↓
+5. POST /auth/logout to end session
+```
+
+### Security Features
+
+- **Password Hashing**: bcrypt with automatic salt
+- **JWT Tokens**: RS256/HS256 signed tokens
+- **Token Expiry**: Access tokens expire (configurable, default 30 min)
+- **Refresh Tokens**: Long-lived tokens for session renewal
+- **Login History**: All login attempts logged with IP and user agent
+- **Role Validation**: Every protected endpoint validates user role
 
 ---
 
@@ -1384,3 +1645,145 @@ var jsonData = pm.response.json();
 pm.collectionVariables.set("token", jsonData.access_token);
 pm.collectionVariables.set("refresh_token", jsonData.refresh_token);
 ```
+
+---
+
+## Complete API Endpoint Reference
+
+### Authentication (`/api/v1/auth`)
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `POST` | `/auth/login` | Login with username/password | No |
+| `POST` | `/auth/logout` | Logout current session | Yes |
+| `POST` | `/auth/refresh` | Refresh access token | No (needs refresh_token) |
+| `POST` | `/auth/register` | Register new user | Yes (Director) |
+| `POST` | `/auth/change-password` | Change password | Yes |
+| `GET` | `/auth/me` | Get current user | Yes |
+| `GET` | `/auth/validate` | Validate token | Yes |
+| `GET` | `/auth/permissions` | Get user permissions | Yes |
+| `GET` | `/auth/login-history` | Get own login history | Yes |
+| `GET` | `/auth/all-login-history` | Get all login history | Yes (Director) |
+
+### Users (`/api/v1/users`)
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `GET` | `/users` | List all users | Yes (Director) |
+| `GET` | `/users/{id}` | Get user by ID | Yes |
+| `PUT` | `/users/{id}` | Update user | Yes (Director) |
+| `DELETE` | `/users/{id}` | Delete user | Yes (Director) |
+
+### Materials (`/api/v1/materials`)
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `GET` | `/materials` | List materials | Yes |
+| `GET` | `/materials/{id}` | Get material by ID | Yes |
+| `POST` | `/materials` | Create material | Yes (Engineer+) |
+| `PUT` | `/materials/{id}` | Update material | Yes (Engineer+) |
+| `DELETE` | `/materials/{id}` | Delete material | Yes (Engineer+) |
+| `GET` | `/materials/categories` | List categories | Yes |
+| `POST` | `/materials/categories` | Create category | Yes (Engineer+) |
+| `PUT` | `/materials/categories/{id}` | Update category | Yes (Engineer+) |
+| `DELETE` | `/materials/categories/{id}` | Delete category | Yes (Engineer+) |
+
+### Parts (`/api/v1/parts`)
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `GET` | `/parts` | List parts | Yes |
+| `GET` | `/parts/{id}` | Get part by ID | Yes |
+| `POST` | `/parts` | Create part | Yes (Engineer+) |
+| `PUT` | `/parts/{id}` | Update part | Yes (Engineer+) |
+| `DELETE` | `/parts/{id}` | Delete part | Yes (Engineer+) |
+| `GET` | `/parts/{id}/materials` | List part materials | Yes |
+| `POST` | `/parts/{id}/materials` | Add material to part | Yes (Engineer+) |
+| `DELETE` | `/parts/{id}/materials/{mat_id}` | Remove material | Yes (Engineer+) |
+
+### Suppliers (`/api/v1/suppliers`)
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `GET` | `/suppliers` | List suppliers | Yes |
+| `GET` | `/suppliers/{id}` | Get supplier by ID | Yes |
+| `POST` | `/suppliers` | Create supplier | Yes (Purchase+) |
+| `PUT` | `/suppliers/{id}` | Update supplier | Yes (Purchase+) |
+| `DELETE` | `/suppliers/{id}` | Delete supplier | Yes (Purchase+) |
+| `GET` | `/suppliers/{id}/materials` | List supplier materials | Yes |
+| `POST` | `/suppliers/{id}/materials` | Add supplier material | Yes (Purchase+) |
+
+### Inventory (`/api/v1/inventory`)
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `GET` | `/inventory` | List inventory | Yes |
+| `GET` | `/inventory/{id}` | Get inventory by ID | Yes |
+| `POST` | `/inventory` | Create inventory | Yes (Store+) |
+| `PUT` | `/inventory/{id}` | Update inventory | Yes (Store+) |
+| `DELETE` | `/inventory/{id}` | Delete inventory | Yes (Store+) |
+| `GET` | `/inventory/{id}/transactions` | List transactions | Yes |
+| `POST` | `/inventory/{id}/transactions` | Create transaction | Yes (Store+) |
+
+### Certifications (`/api/v1/certifications`)
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `GET` | `/certifications` | List certifications | Yes |
+| `GET` | `/certifications/{id}` | Get certification by ID | Yes |
+| `POST` | `/certifications` | Create certification | Yes (QA+) |
+| `PUT` | `/certifications/{id}` | Update certification | Yes (QA+) |
+| `DELETE` | `/certifications/{id}` | Delete certification | Yes (QA+) |
+| `POST` | `/certifications/materials` | Link cert to material | Yes (QA+) |
+| `PUT` | `/certifications/materials/{id}` | Update material cert | Yes (QA+) |
+
+### Orders (`/api/v1/orders`)
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `GET` | `/orders` | List orders | Yes |
+| `GET` | `/orders/{id}` | Get order by ID | Yes |
+| `POST` | `/orders` | Create order | Yes (Purchase+) |
+| `PUT` | `/orders/{id}` | Update order | Yes (Purchase+) |
+| `DELETE` | `/orders/{id}` | Delete order (draft) | Yes (Purchase+) |
+| `POST` | `/orders/{id}/submit` | Submit for approval | Yes (Purchase+) |
+| `POST` | `/orders/{id}/approve` | Approve order | Yes (Head of Ops+) |
+| `POST` | `/orders/{id}/items` | Add order item | Yes (Purchase+) |
+| `PUT` | `/orders/{id}/items/{item_id}` | Update order item | Yes (Purchase+) |
+| `DELETE` | `/orders/{id}/items/{item_id}` | Delete order item | Yes (Purchase+) |
+
+---
+
+## Common Errors & Solutions
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| `404 Not Found` | Wrong URL path | Check the endpoint URL - don't forget prefixes like `/auth/` |
+| `401 Unauthorized` | Missing or invalid token | Login again to get a fresh token |
+| `403 Forbidden` | Insufficient permissions | Use an account with appropriate role |
+| `422 Unprocessable Entity` | Invalid request data | Check request body format and required fields |
+| `500 Internal Server Error` | Server-side error | Check server logs for details |
+
+---
+
+## Troubleshooting
+
+### Token Issues
+```
+# Token expired? Refresh it:
+POST /api/v1/auth/refresh?refresh_token=<your_refresh_token>
+
+# Token invalid? Login again:
+POST /api/v1/auth/login
+```
+
+### Permission Denied
+Check your role has access to the endpoint. Use:
+```
+GET /api/v1/auth/permissions
+```
+
+### 404 Not Found on Auth Endpoints
+Make sure you include `/auth/` in the URL:
+- ❌ Wrong: `POST /api/v1/logout`
+- ✅ Correct: `POST /api/v1/auth/logout`
