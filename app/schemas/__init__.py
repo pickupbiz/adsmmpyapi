@@ -80,6 +80,31 @@ from app.schemas.audit import (
     AuditLogQuery, AuditAction
 )
 
+# Purchase Order (Enhanced)
+from app.schemas.purchase_order import (
+    PurchaseOrderCreate, PurchaseOrderUpdate, PurchaseOrderResponse, PurchaseOrderListResponse,
+    POLineItemCreate, POLineItemUpdate, POLineItemResponse,
+    POApprovalRequest, POApprovalHistoryResponse,
+    GoodsReceiptNoteCreate, GoodsReceiptNoteUpdate, GoodsReceiptNoteResponse,
+    GRNLineItemCreate, GRNLineItemUpdate, GRNLineItemResponse,
+    MaterialLifecycleUpdate, MaterialLifecycleTracker, POSummary, SupplierPOSummary,
+    POStatusEnum, POPriorityEnum, MaterialStageEnum, GRNStatusEnum, ApprovalActionEnum
+)
+
+# Material Instance with PO Integration
+from app.schemas.material_instance import (
+    MaterialInstanceCreate, MaterialInstanceUpdate, MaterialInstanceResponse,
+    MaterialInstanceDetailResponse, MaterialInstanceFromGRN,
+    MaterialStatusChangeRequest, MaterialStatusHistoryResponse,
+    MaterialAllocationCreate, MaterialAllocationUpdate, MaterialAllocationResponse,
+    MaterialIssueRequest, MaterialReturnRequest,
+    BOMSourceTrackingCreate, BOMSourceTrackingUpdate, BOMSourceTrackingResponse,
+    MaterialReceiptFromPORequest, BulkMaterialReceiptRequest,
+    MaterialInspectionRequest, ProjectMaterialSummary, BOMSourceSummary,
+    MaterialLifecycleReport, MaterialInventorySummary,
+    MaterialLifecycleStatus, MaterialCondition
+)
+
 # Common
 from app.schemas.common import PaginatedResponse, Message
 
@@ -132,6 +157,25 @@ __all__ = [
     "AuditLogCreate", "AuditLogResponse",
     "DataChangeLogResponse", "LoginHistoryResponse",
     "AuditLogQuery", "AuditAction",
+    # Purchase Order (Enhanced)
+    "PurchaseOrderCreate", "PurchaseOrderUpdate", "PurchaseOrderResponse", "PurchaseOrderListResponse",
+    "POLineItemCreate", "POLineItemUpdate", "POLineItemResponse",
+    "POApprovalRequest", "POApprovalHistoryResponse",
+    "GoodsReceiptNoteCreate", "GoodsReceiptNoteUpdate", "GoodsReceiptNoteResponse",
+    "GRNLineItemCreate", "GRNLineItemUpdate", "GRNLineItemResponse",
+    "MaterialLifecycleUpdate", "MaterialLifecycleTracker", "POSummary", "SupplierPOSummary",
+    "POStatusEnum", "POPriorityEnum", "MaterialStageEnum", "GRNStatusEnum", "ApprovalActionEnum",
+    # Material Instance
+    "MaterialInstanceCreate", "MaterialInstanceUpdate", "MaterialInstanceResponse",
+    "MaterialInstanceDetailResponse", "MaterialInstanceFromGRN",
+    "MaterialStatusChangeRequest", "MaterialStatusHistoryResponse",
+    "MaterialAllocationCreate", "MaterialAllocationUpdate", "MaterialAllocationResponse",
+    "MaterialIssueRequest", "MaterialReturnRequest",
+    "BOMSourceTrackingCreate", "BOMSourceTrackingUpdate", "BOMSourceTrackingResponse",
+    "MaterialReceiptFromPORequest", "BulkMaterialReceiptRequest",
+    "MaterialInspectionRequest", "ProjectMaterialSummary", "BOMSourceSummary",
+    "MaterialLifecycleReport", "MaterialInventorySummary",
+    "MaterialLifecycleStatus", "MaterialCondition",
     # Common
     "PaginatedResponse", "Message",
 ]
