@@ -2506,6 +2506,751 @@ Finish Production → COMPLETED | Scrap → SCRAPPED
 
 ---
 
+## 12. Barcode Management with PO Integration
+
+### Barcode Endpoints Reference
+
+| Method | Endpoint | Description | Required Role |
+|--------|----------|-------------|---------------|
+| GET | `/barcodes` | List barcodes with filtering | Any role |
+| GET | `/barcodes/{id}` | Get barcode by ID | Any role |
+| GET | `/barcodes/lookup/{value}` | Look up barcode by value | Any role |
+| POST | `/barcodes` | Create barcode | Store |
+| PUT | `/barcodes/{id}` | Update barcode | Store |
+| DELETE | `/barcodes/{id}` | Void barcode | Engineer |
+| POST | `/barcodes/generate` | Generate new barcode | Store |
+| POST | `/barcodes/generate-from-po` | Generate barcode from PO | Store |
+| POST | `/barcodes/scan` | Process barcode scan | Any role |
+| POST | `/barcodes/scan-to-receive` | Scan-to-receive against PO | Store |
+| POST | `/barcodes/validate` | Validate barcode against PO | Any role |
+| POST | `/barcodes/create-wip` | Create WIP barcode | Store |
+| POST | `/barcodes/create-finished-goods` | Create finished goods barcode | Store |
+| GET | `/barcodes/{id}/traceability` | Get traceability chain | Any role |
+| GET | `/barcodes/{id}/scan-history` | Get scan history | Any role |
+| GET | `/barcodes/{id}/image` | Get barcode image | - |
+| GET | `/barcodes/{id}/qr` | Get QR code image | - |
+| GET | `/barcodes/summary/by-stage` | Summary by traceability stage | Any role |
+| GET | `/barcodes/summary/by-po/{id}` | Summary by PO | Any role |
+
+### Generate Barcode from PO Line Item
+
+```http
+POST /api/v1/barcodes/generate-from-po
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "po_line_item_id": 1,
+    "grn_line_item_id": 1,
+    "lot_number": "LOT-2026-001",
+    "batch_number": "BATCH-001",
+    "heat_number": "HT-123456",
+    "quantity": 100.0,
+    "manufacture_date": "2026-01-15",
+    "expiry_date": "2028-01-15",
+    "storage_location": "Warehouse A, Rack 12",
+    "bin_number": "A12-001",
+    "barcode_type": "qr_code",
+    "notes": "First batch received"
+}
+```
+
+**Response:**
+```json
+{
+    "barcode_id": 1,
+    "barcode_value": "RM-PO2026001-260123-00001",
+    "barcode_type": "qr_code",
+    "qr_data": {
+        "v": 1,
+        "bc": "RM-PO2026001-260123-00001",
+        "ts": "2026-01-23T10:30:00.000000",
+        "po": "PO-2026-001",
+        "pn": "MAT-001",
+        "name": "Aluminum Sheet 6061-T6",
+        "spec": "0.125\" x 48\" x 96\"",
+        "lot": "LOT-2026-001",
+        "heat": "HT-123456",
+        "qty": 100.0,
+        "uom": "sheets",
+        "supplier": "Aerospace Metals Inc.",
+        "mfg": "2026-01-15",
+        "exp": "2028-01-15",
+        "stage": "received"
+    },
+    "qr_data_encoded": "eyJ2IjoxLCJiYyI6IlJNLVBPMjAyNjAwMS0yNjAxMjMtMDAwMDEiLC4uLn0=",
+    "barcode_image_base64": "<base64_encoded_code128>",
+    "qr_image_base64": "<base64_encoded_qr>"
+}
+```
+
+### Scan-to-Receive Against PO
+
+```http
+POST /api/v1/barcodes/scan-to-receive
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "barcode_value": "RM-PO2026001-260123-00001",
+    "purchase_order_id": 1,
+    "po_line_item_id": 1,
+    "grn_id": 1,
+    "quantity_received": 50.0,
+    "storage_location": "Warehouse A, Rack 12",
+    "bin_number": "A12-001",
+    "validate_po": true,
+    "notes": "Partial receipt - 50 of 100 units"
+}
+```
+
+**Response:**
+```json
+{
+    "id": 1,
+    "barcode_label_id": 1,
+    "scanned_by": 2,
+    "scanned_by_name": "John Store Keeper",
+    "scan_timestamp": "2026-01-23T10:35:00.000000+00:00",
+    "scan_location": "Warehouse A, Rack 12",
+    "scan_action": "po_receipt",
+    "purchase_order_id": 1,
+    "grn_id": 1,
+    "quantity_scanned": 50.0,
+    "quantity_before": 100.0,
+    "quantity_after": 100.0,
+    "status_before": "active",
+    "status_after": "active",
+    "stage_before": "received",
+    "stage_after": "received",
+    "location_from": null,
+    "location_to": "Warehouse A, Rack 12",
+    "is_successful": true,
+    "error_message": null,
+    "validation_result": {
+        "is_valid": true,
+        "checks": {
+            "po_match": true,
+            "quantity_valid": true,
+            "not_expired": true
+        }
+    },
+    "reference_type": "PO",
+    "reference_number": "PO-2026-001"
+}
+```
+
+### Process General Barcode Scan
+
+```http
+POST /api/v1/barcodes/scan
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "barcode_value": "RM-PO2026001-260123-00001",
+    "scan_action": "issue",
+    "scan_location": "Production Floor",
+    "scan_device": "Handheld Scanner #5",
+    "quantity": 25.0,
+    "new_location": "Machine Shop",
+    "reference_type": "WO",
+    "reference_number": "WO-2026-015",
+    "notes": "Issued for Work Order WO-2026-015"
+}
+```
+
+**Supported scan_action values:**
+- `po_receipt` - Receive material against PO
+- `inspection` - QC inspection scan
+- `issue` - Issue to production
+- `wip_start` - Start WIP processing
+- `wip_complete` - Complete WIP stage
+- `transfer` - Transfer location
+- `inventory` - Inventory count
+
+### Validate Barcode Against PO
+
+```http
+POST /api/v1/barcodes/validate
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "barcode_value": "RM-PO2026001-260123-00001",
+    "purchase_order_id": 1,
+    "po_line_item_id": 1,
+    "expected_material_id": 1,
+    "expected_quantity": 50.0
+}
+```
+
+**Response:**
+```json
+{
+    "is_valid": true,
+    "barcode_found": true,
+    "barcode_active": true,
+    "po_match": true,
+    "material_match": true,
+    "quantity_valid": true,
+    "not_expired": true,
+    "barcode_id": 1,
+    "barcode_status": "active",
+    "po_number": "PO-2026-001",
+    "material_part_number": "MAT-001",
+    "current_quantity": 100.0,
+    "errors": [],
+    "warnings": [],
+    "checks": {
+        "po_match": true,
+        "material_match": true,
+        "quantity_valid": true,
+        "not_expired": true
+    }
+}
+```
+
+### Create WIP Barcode (Raw Material → Work in Progress)
+
+```http
+POST /api/v1/barcodes/create-wip
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "parent_barcode_id": 1,
+    "work_order_reference": "WO-2026-015",
+    "quantity_used": 10.0,
+    "unit_of_measure": "sheets",
+    "operation": "Machining",
+    "station": "CNC-01",
+    "notes": "Cut to size for fuselage panel"
+}
+```
+
+**Response:**
+```json
+{
+    "barcode_id": 2,
+    "barcode_value": "WIP-260123-00001",
+    "barcode_type": "qr_code",
+    "qr_data": {
+        "v": 1,
+        "bc": "WIP-260123-00001",
+        "ts": "2026-01-23T11:00:00.000000",
+        "po": "PO-2026-001",
+        "pn": "MAT-001",
+        "name": "Aluminum Sheet 6061-T6",
+        "lot": "LOT-2026-001",
+        "heat": "HT-123456",
+        "qty": 10.0,
+        "uom": "sheets",
+        "stage": "in_production",
+        "parent": "RM-PO2026001-260123-00001",
+        "extra": {"wo": "WO-2026-015"}
+    }
+}
+```
+
+### Create Finished Goods Barcode
+
+```http
+POST /api/v1/barcodes/create-finished-goods
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "parent_barcode_ids": [2, 3, 4],
+    "part_number": "ASSY-PANEL-001",
+    "part_name": "Fuselage Panel Assembly",
+    "serial_number": "SN-2026-00001",
+    "work_order_reference": "WO-2026-015",
+    "project_reference": "PROJ-2026-001",
+    "notes": "Completed assembly with QA inspection"
+}
+```
+
+**Response:**
+```json
+{
+    "barcode_id": 5,
+    "barcode_value": "FG-SN202600001-00001",
+    "barcode_type": "qr_code",
+    "qr_data": {
+        "v": 1,
+        "bc": "FG-SN202600001-00001",
+        "ts": "2026-01-23T14:00:00.000000",
+        "pn": "ASSY-PANEL-001",
+        "name": "Fuselage Panel Assembly",
+        "sn": "SN-2026-00001",
+        "stage": "completed",
+        "wo": "WO-2026-015",
+        "materials": ["WIP-260123-00001", "WIP-260123-00002", "WIP-260123-00003"]
+    }
+}
+```
+
+### Get Full Traceability Chain
+
+```http
+GET /api/v1/barcodes/5/traceability
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+{
+    "barcode_id": 5,
+    "barcode_value": "FG-SN202600001-00001",
+    "chain_length": 3,
+    "chain": [
+        {
+            "barcode_id": 5,
+            "barcode_value": "FG-SN202600001-00001",
+            "entity_type": "finished_goods",
+            "traceability_stage": "completed",
+            "po_number": "PO-2026-001",
+            "material_part_number": "ASSY-PANEL-001",
+            "lot_number": null,
+            "quantity": 1.0,
+            "created_at": "2026-01-23T14:00:00.000000+00:00"
+        },
+        {
+            "barcode_id": 2,
+            "barcode_value": "WIP-260123-00001",
+            "entity_type": "wip",
+            "traceability_stage": "consumed",
+            "po_number": "PO-2026-001",
+            "material_part_number": "MAT-001",
+            "lot_number": "LOT-2026-001",
+            "quantity": 0.0,
+            "created_at": "2026-01-23T11:00:00.000000+00:00"
+        },
+        {
+            "barcode_id": 1,
+            "barcode_value": "RM-PO2026001-260123-00001",
+            "entity_type": "raw_material",
+            "traceability_stage": "consumed",
+            "po_number": "PO-2026-001",
+            "material_part_number": "MAT-001",
+            "lot_number": "LOT-2026-001",
+            "quantity": 0.0,
+            "created_at": "2026-01-23T10:30:00.000000+00:00"
+        }
+    ],
+    "source_po_number": "PO-2026-001",
+    "source_supplier": "Aerospace Metals Inc.",
+    "finished_goods_serial": "SN-2026-00001"
+}
+```
+
+### Get Barcode/QR Code Images
+
+```http
+# Get Code128 barcode image
+GET /api/v1/barcodes/1/image?format=png
+
+# Get QR code image with embedded data
+GET /api/v1/barcodes/1/qr?format=png&size=10
+```
+
+### Barcode Traceability Flow
+
+```
+Purchase Order Created
+    ↓
+PO Line Items → Material ordered
+    ↓
+GRN Created → Material received
+    ↓
+Generate Barcode (RM-xxx) → Raw Material barcode with PO reference
+    ↓
+QC Inspection Scan → Stage: INSPECTED
+    ↓
+Storage Scan → Stage: IN_STORAGE, Location updated
+    ↓
+Issue to Production → Create WIP Barcode (WIP-xxx)
+    │                   └── Parent: RM-xxx (PO traceability preserved)
+    ↓
+WIP Processing → Stage: IN_PRODUCTION
+    ↓
+Complete Manufacturing → Create FG Barcode (FG-xxx)
+    │                      └── Parents: [WIP-xxx...] (Full traceability)
+    ↓
+Finished Goods → Stage: COMPLETED
+    │              └── Full chain: FG → WIP → RM → PO
+    ↓
+Ship to Customer → Stage: SHIPPED
+```
+
+### QR Code Data Structure
+
+The QR code contains JSON data with the following fields:
+
+| Field | Description | Example |
+|-------|-------------|---------|
+| `v` | Version | `1` |
+| `bc` | Barcode value | `"RM-PO2026001-260123-00001"` |
+| `ts` | Timestamp | `"2026-01-23T10:30:00"` |
+| `po` | PO number | `"PO-2026-001"` |
+| `pn` | Part number | `"MAT-001"` |
+| `name` | Material name | `"Aluminum Sheet"` |
+| `spec` | Specification | `"0.125\" x 48\""` |
+| `lot` | Lot number | `"LOT-2026-001"` |
+| `batch` | Batch number | `"BATCH-001"` |
+| `heat` | Heat number | `"HT-123456"` |
+| `qty` | Quantity | `100.0` |
+| `uom` | Unit of measure | `"sheets"` |
+| `supplier` | Supplier name | `"Aerospace Metals"` |
+| `mfg` | Manufacture date | `"2026-01-15"` |
+| `exp` | Expiry date | `"2028-01-15"` |
+| `stage` | Current stage | `"received"` |
+| `parent` | Parent barcode | `"RM-xxx"` (for WIP/FG) |
+| `materials` | Source materials | `["WIP-xxx"]` (for FG) |
+
+---
+
+## 13. Workflow Management with PO Approval
+
+### Workflow Endpoints Reference
+
+| Method | Endpoint | Description | Required Role |
+|--------|----------|-------------|---------------|
+| GET | `/workflows/templates` | List workflow templates | Any role |
+| POST | `/workflows/templates` | Create workflow template | Director |
+| GET | `/workflows/templates/{id}` | Get template details | Any role |
+| PUT | `/workflows/templates/{id}` | Update template | Director |
+| POST | `/workflows/templates/{id}/steps` | Add workflow step | Director |
+| GET | `/workflows/instances` | List workflow instances | Any role |
+| POST | `/workflows/instances` | Create workflow instance | Any role |
+| GET | `/workflows/instances/{id}` | Get instance details | Any role |
+| POST | `/workflows/instances/{id}/approve` | Approve/reject workflow | Based on step |
+| POST | `/workflows/instances/{id}/cancel` | Cancel workflow | Requestor/Admin |
+| POST | `/workflows/po/{po_id}/submit` | Submit PO for approval | Purchase |
+| GET | `/workflows/po/{po_id}/approval-status` | Get PO approval status | Any role |
+| POST | `/workflows/material-issue/{id}/submit` | Submit material issue | Store |
+| POST | `/workflows/quality-inspection/{id}/approve` | QA inspection approval | QA |
+| GET | `/workflows/my-approvals` | Get pending approvals | Any role |
+| GET | `/workflows/audit-trail/{type}/{id}` | Get audit trail | Any role |
+
+### Approval Thresholds
+
+| Level | Amount | Required Approvers |
+|-------|--------|-------------------|
+| Auto-approve | < $5,000 | None (auto-approved) |
+| Standard | < $25,000 | Head of Operations |
+| High | < $100,000 | Head of Operations + Director |
+| Critical | > $100,000 | Head of Operations + Director |
+
+### Submit PO for Approval
+
+```http
+POST /api/v1/workflows/po/1/submit
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "notes": "Urgent material required for Project ABC"
+}
+```
+
+**Response:**
+```json
+{
+    "id": 1,
+    "template_id": 1,
+    "reference_type": "purchase_order",
+    "reference_id": 1,
+    "reference_number": "PO-2026-001",
+    "status": "pending",
+    "current_step": 1,
+    "amount": 45000.00,
+    "currency": "USD",
+    "requested_by": 3,
+    "requested_at": "2026-01-23T10:00:00.000000",
+    "due_date": "2026-01-25T10:00:00.000000",
+    "priority": "high",
+    "extra_data": {
+        "supplier_name": "Aerospace Metals Inc.",
+        "po_date": "2026-01-23",
+        "line_item_count": 5
+    },
+    "notes": "Urgent material required for Project ABC"
+}
+```
+
+### Approve/Reject Workflow
+
+```http
+POST /api/v1/workflows/instances/1/approve
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "action": "approved",
+    "comments": "Approved. Priority procurement authorized."
+}
+```
+
+**For rejection:**
+```json
+{
+    "action": "rejected",
+    "comments": "Budget exceeded for Q1. Please revise quantities."
+}
+```
+
+**Response:**
+```json
+{
+    "id": 1,
+    "workflow_instance_id": 1,
+    "workflow_step_id": 1,
+    "step_number": 1,
+    "approver_id": 1,
+    "status": "approved",
+    "decision_at": "2026-01-23T11:30:00.000000+00:00",
+    "comments": "Approved. Priority procurement authorized.",
+    "is_escalated": false,
+    "created_at": "2026-01-23T10:00:00.000000+00:00",
+    "updated_at": "2026-01-23T11:30:00.000000+00:00"
+}
+```
+
+### Get PO Approval Status
+
+```http
+GET /api/v1/workflows/po/1/approval-status
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+{
+    "po_number": "PO-2026-001",
+    "po_status": "approved",
+    "total_amount": 45000.00,
+    "currency": "USD",
+    "workflow": {
+        "id": 1,
+        "status": "approved",
+        "current_step": 2,
+        "approvals": [
+            {
+                "step": 1,
+                "status": "approved",
+                "approver": "John Operations",
+                "decision_at": "2026-01-23T11:30:00",
+                "comments": "Approved. Priority procurement authorized."
+            },
+            {
+                "step": 2,
+                "status": "approved",
+                "approver": "Jane Director",
+                "decision_at": "2026-01-23T14:00:00",
+                "comments": "Final approval granted."
+            }
+        ]
+    },
+    "history": [
+        {
+            "action": "approved",
+            "user": "Jane Director",
+            "from_status": "pending_approval",
+            "to_status": "approved",
+            "comments": "Final approval granted.",
+            "timestamp": "2026-01-23T14:00:00"
+        },
+        {
+            "action": "submitted",
+            "user": "Mike Purchase",
+            "from_status": "draft",
+            "to_status": "pending_approval",
+            "comments": "Urgent material required",
+            "timestamp": "2026-01-23T10:00:00"
+        }
+    ]
+}
+```
+
+### Submit Material Issue for Approval
+
+```http
+POST /api/v1/workflows/material-issue/1/submit
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "notes": "Material required for Work Order WO-2026-015"
+}
+```
+
+### QA Inspection Approval
+
+```http
+POST /api/v1/workflows/quality-inspection/1/approve
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "passed": true,
+    "inspection_notes": "Material meets specification. COC verified. Dimensions within tolerance."
+}
+```
+
+**For failed inspection:**
+```json
+{
+    "passed": false,
+    "inspection_notes": "Material failed hardness test. NCR-2026-001 raised."
+}
+```
+
+### Get My Pending Approvals (Dashboard)
+
+```http
+GET /api/v1/workflows/my-approvals
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+{
+    "workflow_approvals": [
+        {
+            "approval_id": 5,
+            "instance_id": 3,
+            "reference_type": "purchase_order",
+            "reference_number": "PO-2026-003",
+            "amount": 75000.00,
+            "currency": "USD",
+            "requested_at": "2026-01-23T09:00:00",
+            "priority": "high"
+        }
+    ],
+    "pending_pos": [
+        {
+            "id": 3,
+            "po_number": "PO-2026-003",
+            "total_amount": 75000.00,
+            "currency": "USD",
+            "created_at": "2026-01-23T08:30:00"
+        }
+    ],
+    "pending_inspections": [
+        {
+            "id": 10,
+            "item_number": "MI-2026-00010",
+            "material_id": 5,
+            "quantity": 50.0,
+            "received_date": "2026-01-22"
+        }
+    ],
+    "total_pending": 3
+}
+```
+
+### Get Audit Trail
+
+```http
+GET /api/v1/workflows/audit-trail/purchase_order/1?limit=20
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+[
+    {
+        "id": 15,
+        "action": "APPROVE",
+        "user": "Jane Director",
+        "description": "Approved workflow step 2",
+        "old_values": {"status": "in_review"},
+        "new_values": {"status": "approved", "comments": "Final approval granted."},
+        "timestamp": "2026-01-23T14:00:00",
+        "ip_address": "192.168.1.100"
+    },
+    {
+        "id": 12,
+        "action": "APPROVE",
+        "user": "John Operations",
+        "description": "Approved workflow step 1",
+        "old_values": {"status": "pending"},
+        "new_values": {"status": "in_review", "comments": "Approved. Priority procurement authorized."},
+        "timestamp": "2026-01-23T11:30:00",
+        "ip_address": "192.168.1.101"
+    },
+    {
+        "id": 10,
+        "action": "SUBMIT",
+        "user": "Mike Purchase",
+        "description": "Submitted PO PO-2026-001 for approval (Amount: USD 45000.00)",
+        "old_values": null,
+        "new_values": {"status": "pending_approval", "workflow_id": 1},
+        "timestamp": "2026-01-23T10:00:00",
+        "ip_address": "192.168.1.102"
+    }
+]
+```
+
+### Role-Based Approval Permissions
+
+| Role | Can Approve | Amount Limit | Special Permissions |
+|------|-------------|--------------|---------------------|
+| **Director** | All workflows | Unlimited | Final approval on all POs |
+| **Head of Operations** | PO, Material Issue | $100,000 | Operations workflows |
+| **Purchase** | Supplier, Material | $25,000 | PO creation, supplier approvals |
+| **Store** | Material Movement | $10,000 | Material receipt, issue |
+| **QA** | Quality Inspection | $50,000 | Inspection pass/fail |
+
+### Workflow Status Flow
+
+```
+PO APPROVAL WORKFLOW:
+━━━━━━━━━━━━━━━━━━━━━
+Draft → Submit (Purchase)
+    ↓
+Pending Approval → Step 1: Head of Operations Review
+    ↓
+    ├─→ Approved → Amount > $25K? → Step 2: Director Review
+    │                    ↓
+    │               └─→ Approved → PO Ready to Order
+    │               └─→ Rejected → PO Rejected
+    │
+    └─→ Rejected → PO Rejected (back to Draft for revision)
+
+MATERIAL ISSUE WORKFLOW:
+━━━━━━━━━━━━━━━━━━━━━━━━
+Create Allocation (Store)
+    ↓
+Submit for Approval → Step 1: Supervisor Review
+    ↓
+    ├─→ Approved → Material Issued
+    └─→ Rejected → Allocation Cancelled
+
+QUALITY INSPECTION:
+━━━━━━━━━━━━━━━━━━━
+Material Received → In Inspection
+    ↓
+QA Inspection
+    ├─→ Passed → In Storage (available for use)
+    └─→ Failed → Rejected (NCR process)
+```
+
+### Email Notifications
+
+The system sends email notifications for:
+- **PO Pending Approval**: Sent to approvers when a PO needs review
+- **PO Approved**: Sent to requestor when PO is approved
+- **PO Rejected**: Sent to requestor with rejection reason
+- **Material Inspection Required**: Sent to QA when material needs inspection
+- **Workflow Escalation**: Sent when approval is overdue
+
+> **Note**: Email notifications are disabled by default. Enable in production by setting `EMAIL_ENABLED=true` in configuration.
+
+---
+
 ## Common Errors & Solutions
 
 | Error | Cause | Solution |

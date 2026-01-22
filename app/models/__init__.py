@@ -23,8 +23,11 @@ from app.models.certification import Certification, MaterialCertification, Certi
 # Orders
 from app.models.order import Order, OrderItem, OrderStatus, OrderPriority
 
-# Barcode tracking
-from app.models.barcode import BarcodeLabel, BarcodeScanLog, BarcodeType, BarcodeStatus
+# Barcode tracking with PO integration
+from app.models.barcode import (
+    BarcodeLabel, BarcodeScanLog, BarcodeTemplate,
+    BarcodeType, BarcodeStatus, BarcodeEntityType, TraceabilityStage
+)
 
 # Workflow and approvals
 from app.models.workflow import (
@@ -72,7 +75,8 @@ __all__ = [
     # Order
     "Order", "OrderItem", "OrderStatus", "OrderPriority",
     # Barcode
-    "BarcodeLabel", "BarcodeScanLog", "BarcodeType", "BarcodeStatus",
+    "BarcodeLabel", "BarcodeScanLog", "BarcodeTemplate",
+    "BarcodeType", "BarcodeStatus", "BarcodeEntityType", "TraceabilityStage",
     # Workflow
     "WorkflowTemplate", "WorkflowStep", "WorkflowInstance", "WorkflowApproval",
     "WorkflowType", "WorkflowStatus", "ApprovalStatus",
