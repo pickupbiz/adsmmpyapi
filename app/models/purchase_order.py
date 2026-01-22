@@ -222,7 +222,7 @@ class POLineItem(Base, TimestampMixin):
     
     # Relationships
     purchase_order: Mapped["PurchaseOrder"] = relationship("PurchaseOrder", back_populates="line_items")
-    material: Mapped["Material"] = relationship("Material")
+    material: Mapped["Material"] = relationship("Material", back_populates="po_line_items")
     
     grn_items: Mapped[List["GRNLineItem"]] = relationship(
         "GRNLineItem",

@@ -2160,6 +2160,350 @@ pm.collectionVariables.set("refresh_token", jsonData.refresh_token);
 | `PUT` | `/orders/{id}/items/{item_id}` | Update order item | Yes (Purchase+) |
 | `DELETE` | `/orders/{id}/items/{item_id}` | Delete order item | Yes (Purchase+) |
 
+### Material Instances (`/api/v1/material-instances`)
+
+Material instances track individual materials through their full lifecycle, integrated with Purchase Orders.
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `GET` | `/material-instances` | List material instances | Yes |
+| `GET` | `/material-instances/{id}` | Get instance details | Yes |
+| `POST` | `/material-instances` | Create instance (direct) | Yes (Store+) |
+| `PUT` | `/material-instances/{id}` | Update instance | Yes (Store+) |
+| `DELETE` | `/material-instances/{id}` | Delete instance | Yes (Engineer+) |
+| `POST` | `/material-instances/receive-from-grn` | Create from GRN | Yes (Store+) |
+| `POST` | `/material-instances/bulk-receive` | Bulk create from GRN | Yes (Store+) |
+| `POST` | `/material-instances/{id}/change-status` | Change lifecycle status | Yes (Store+) |
+| `POST` | `/material-instances/{id}/inspect` | Process QA inspection | Yes (QA+) |
+| `GET` | `/material-instances/{id}/history` | Get status history | Yes |
+| `GET` | `/material-instances/by-po/{po_id}` | Get materials by PO | Yes |
+| `GET` | `/material-instances/summary/by-status` | Inventory summary | Yes |
+| `GET` | `/material-instances/summary/project/{id}` | Project material summary | Yes |
+| `GET` | `/material-instances/lifecycle-report/{id}` | Full lifecycle report | Yes |
+
+#### Material Allocations
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `POST` | `/material-instances/allocations` | Create allocation | Yes (Store+) |
+| `GET` | `/material-instances/allocations` | List allocations | Yes |
+| `POST` | `/material-instances/allocations/{id}/issue` | Issue material | Yes (Store+) |
+| `POST` | `/material-instances/allocations/{id}/return` | Return material | Yes (Store+) |
+| `DELETE` | `/material-instances/allocations/{id}` | Cancel allocation | Yes (Store+) |
+
+#### BOM Source Tracking
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `POST` | `/material-instances/bom-sources` | Create BOM source tracking | Yes (Engineer+) |
+| `GET` | `/material-instances/bom-sources` | List BOM sources | Yes |
+| `PUT` | `/material-instances/bom-sources/{id}` | Update BOM source | Yes (Engineer+) |
+
+---
+
+## Material Instance Examples
+
+### 1. Create Material Instance (Direct Entry)
+
+```http
+POST /api/v1/material-instances
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "title": "Titanium Sheet Ti-6Al-4V",
+  "material_id": 1,
+  "supplier_id": 1,
+  "specification": "AMS 4911",
+  "revision": "C",
+  "quantity": 100.0,
+  "unit_of_measure": "kg",
+  "unit_cost": 85.50,
+  "lot_number": "LOT-2026-001",
+  "batch_number": "BATCH-001",
+  "heat_number": "HT-2026-0001",
+  "condition": "new",
+  "manufacture_date": "2025-12-15",
+  "expiry_date": "2028-12-15",
+  "storage_location": "Warehouse A",
+  "bin_number": "A-12-03",
+  "certificate_number": "CERT-2026-001",
+  "notes": "Premium aerospace grade titanium"
+}
+```
+
+### 2. Receive Materials from GRN (PO Integration)
+
+```http
+POST /api/v1/material-instances/receive-from-grn
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "grn_line_item_id": 1,
+  "title": "Titanium Alloy Ti-6Al-4V from PO",
+  "specification": "AMS 4911",
+  "revision": "C",
+  "lot_number": "LOT-2026-002",
+  "batch_number": "BATCH-002",
+  "heat_number": "HT-2026-0002",
+  "manufacture_date": "2025-12-20",
+  "expiry_date": "2028-12-20",
+  "storage_location": "Warehouse A",
+  "bin_number": "A-12-04",
+  "certificate_number": "CERT-2026-002",
+  "notes": "Received against PO-2026-001"
+}
+```
+
+### 3. Change Material Status
+
+```http
+POST /api/v1/material-instances/1/change-status
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "new_status": "in_inspection",
+  "reason": "QC inspection required",
+  "reference_type": "GRN",
+  "reference_number": "GRN-2026-001",
+  "notes": "Standard receiving inspection"
+}
+```
+
+**Valid Status Transitions:**
+- `ordered` → `received`
+- `received` → `in_inspection`, `in_storage`
+- `in_inspection` → `in_storage` (passed), `rejected` (failed)
+- `in_storage` → `reserved`, `issued`, `scrapped`, `returned`
+- `reserved` → `issued`, `in_storage` (release)
+- `issued` → `in_production`, `in_storage` (return)
+- `in_production` → `completed`, `scrapped`
+
+### 4. Inspect Material (QA Role)
+
+```http
+POST /api/v1/material-instances/1/inspect
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "inspection_passed": true,
+  "inspection_notes": "All parameters within spec. Approved for use.",
+  "storage_location": "Warehouse A",
+  "bin_number": "A-12-05"
+}
+```
+
+**For rejection:**
+```json
+{
+  "inspection_passed": false,
+  "inspection_notes": "Hardness out of spec",
+  "rejection_reason": "Hardness value 42 HRC exceeds max 40 HRC"
+}
+```
+
+### 5. Allocate Material to Project
+
+```http
+POST /api/v1/material-instances/allocations
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "material_instance_id": 1,
+  "project_id": 1,
+  "quantity_allocated": 25.0,
+  "unit_of_measure": "kg",
+  "required_date": "2026-02-15",
+  "priority": 2,
+  "notes": "For MLG production batch 1"
+}
+```
+
+### 6. Issue Allocated Material
+
+```http
+POST /api/v1/material-instances/allocations/1/issue
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "quantity_to_issue": 10.0,
+  "notes": "Issued to production floor, WO-2026-001"
+}
+```
+
+### 7. Return Issued Material
+
+```http
+POST /api/v1/material-instances/allocations/1/return
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "quantity_to_return": 2.5,
+  "reason": "Excess material from production",
+  "notes": "Material in good condition, returned to storage"
+}
+```
+
+### 8. Create BOM Source Tracking
+
+```http
+POST /api/v1/material-instances/bom-sources
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "bom_id": 1,
+  "bom_item_id": 1,
+  "purchase_order_id": 1,
+  "po_line_item_id": 1,
+  "quantity_required": 50.0,
+  "unit_of_measure": "kg",
+  "required_date": "2026-02-28",
+  "notes": "Source tracking for MLG BOM"
+}
+```
+
+### 9. Get Materials by Purchase Order
+
+```http
+GET /api/v1/material-instances/by-po/1
+Authorization: Bearer <token>
+```
+
+### 10. Get Inventory Summary by Status
+
+```http
+GET /api/v1/material-instances/summary/by-status
+Authorization: Bearer <token>
+```
+
+**Response:**
+```json
+[
+  {
+    "status": "in_storage",
+    "count": 45,
+    "total_quantity": 1250.5,
+    "total_value": 85750.25
+  },
+  {
+    "status": "reserved",
+    "count": 12,
+    "total_quantity": 350.0,
+    "total_value": 28750.00
+  },
+  {
+    "status": "in_inspection",
+    "count": 5,
+    "total_quantity": 125.0,
+    "total_value": 10625.00
+  }
+]
+```
+
+### 11. Get Project Material Summary
+
+```http
+GET /api/v1/material-instances/summary/project/1
+Authorization: Bearer <token>
+```
+
+### 12. Get Material Lifecycle Report
+
+```http
+GET /api/v1/material-instances/lifecycle-report/1
+Authorization: Bearer <token>
+```
+
+**Response:**
+```json
+{
+  "material_instance_id": 1,
+  "item_number": "MI-202601-00001",
+  "title": "Titanium Sheet Ti-6Al-4V",
+  "current_status": "in_storage",
+  "po_number": "PO-2026-001",
+  "supplier_name": "Aerospace Metals Inc.",
+  "order_date": "2026-01-15",
+  "received_date": "2026-01-22",
+  "days_in_current_status": 5,
+  "status_history": [
+    {
+      "id": 3,
+      "from_status": "in_inspection",
+      "to_status": "in_storage",
+      "changed_by_name": "QA Inspector",
+      "reference_type": "INSPECTION",
+      "reason": "Inspection completed",
+      "created_at": "2026-01-23T10:30:00Z"
+    },
+    {
+      "id": 2,
+      "from_status": "received",
+      "to_status": "in_inspection",
+      "changed_by_name": "Store Manager",
+      "reference_type": "GRN",
+      "reference_number": "GRN-2026-001",
+      "created_at": "2026-01-22T14:00:00Z"
+    },
+    {
+      "id": 1,
+      "from_status": null,
+      "to_status": "received",
+      "changed_by_name": "Store Manager",
+      "notes": "Received from PO PO-2026-001",
+      "created_at": "2026-01-22T12:00:00Z"
+    }
+  ]
+}
+```
+
+### 13. List Material Instances with Filters
+
+```http
+# Get all available materials in storage
+GET /api/v1/material-instances?lifecycle_status=in_storage&available_only=true
+
+# Search by lot number
+GET /api/v1/material-instances?search=LOT-2026
+
+# Filter by supplier and material
+GET /api/v1/material-instances?supplier_id=1&material_id=1
+
+# Get materials from specific PO
+GET /api/v1/material-instances?purchase_order_id=1
+```
+
+---
+
+## Material Lifecycle Workflow
+
+The material lifecycle with PO integration follows this flow:
+
+```
+PO Created → Material ORDERED
+    ↓
+GRN Created → Material RECEIVED
+    ↓
+QA Inspection → IN_INSPECTION
+    ↓
+Pass → IN_STORAGE | Fail → REJECTED
+    ↓
+Allocate to Project → RESERVED
+    ↓
+Issue to Production → ISSUED
+    ↓
+Use in Manufacturing → IN_PRODUCTION
+    ↓
+Finish Production → COMPLETED | Scrap → SCRAPPED
+```
+
 ---
 
 ## Common Errors & Solutions

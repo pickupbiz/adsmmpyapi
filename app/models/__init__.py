@@ -48,6 +48,12 @@ from app.models.purchase_order import (
     POStatus, POPriority, ApprovalAction, MaterialStage, GRNStatus
 )
 
+# Material Instances with PO Integration
+from app.models.material_instance import (
+    MaterialInstance, MaterialAllocation, MaterialStatusHistory, BOMSourceTracking,
+    MaterialLifecycleStatus, MaterialCondition
+)
+
 __all__ = [
     # Base
     "TimestampMixin",
@@ -79,4 +85,7 @@ __all__ = [
     "PurchaseOrder", "POLineItem", "POApprovalHistory",
     "GoodsReceiptNote", "GRNLineItem",
     "POStatus", "POPriority", "ApprovalAction", "MaterialStage", "GRNStatus",
+    # Material Instances
+    "MaterialInstance", "MaterialAllocation", "MaterialStatusHistory", "BOMSourceTracking",
+    "MaterialLifecycleStatus", "MaterialCondition",
 ]

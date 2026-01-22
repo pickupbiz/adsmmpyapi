@@ -91,6 +91,20 @@ from app.schemas.purchase_order import (
     POStatusEnum, POPriorityEnum, MaterialStageEnum, GRNStatusEnum, ApprovalActionEnum
 )
 
+# Material Instance with PO Integration
+from app.schemas.material_instance import (
+    MaterialInstanceCreate, MaterialInstanceUpdate, MaterialInstanceResponse,
+    MaterialInstanceDetailResponse, MaterialInstanceFromGRN,
+    MaterialStatusChangeRequest, MaterialStatusHistoryResponse,
+    MaterialAllocationCreate, MaterialAllocationUpdate, MaterialAllocationResponse,
+    MaterialIssueRequest, MaterialReturnRequest,
+    BOMSourceTrackingCreate, BOMSourceTrackingUpdate, BOMSourceTrackingResponse,
+    MaterialReceiptFromPORequest, BulkMaterialReceiptRequest,
+    MaterialInspectionRequest, ProjectMaterialSummary, BOMSourceSummary,
+    MaterialLifecycleReport, MaterialInventorySummary,
+    MaterialLifecycleStatus, MaterialCondition
+)
+
 # Common
 from app.schemas.common import PaginatedResponse, Message
 
@@ -151,6 +165,17 @@ __all__ = [
     "GRNLineItemCreate", "GRNLineItemUpdate", "GRNLineItemResponse",
     "MaterialLifecycleUpdate", "MaterialLifecycleTracker", "POSummary", "SupplierPOSummary",
     "POStatusEnum", "POPriorityEnum", "MaterialStageEnum", "GRNStatusEnum", "ApprovalActionEnum",
+    # Material Instance
+    "MaterialInstanceCreate", "MaterialInstanceUpdate", "MaterialInstanceResponse",
+    "MaterialInstanceDetailResponse", "MaterialInstanceFromGRN",
+    "MaterialStatusChangeRequest", "MaterialStatusHistoryResponse",
+    "MaterialAllocationCreate", "MaterialAllocationUpdate", "MaterialAllocationResponse",
+    "MaterialIssueRequest", "MaterialReturnRequest",
+    "BOMSourceTrackingCreate", "BOMSourceTrackingUpdate", "BOMSourceTrackingResponse",
+    "MaterialReceiptFromPORequest", "BulkMaterialReceiptRequest",
+    "MaterialInspectionRequest", "ProjectMaterialSummary", "BOMSourceSummary",
+    "MaterialLifecycleReport", "MaterialInventorySummary",
+    "MaterialLifecycleStatus", "MaterialCondition",
     # Common
     "PaginatedResponse", "Message",
 ]

@@ -17,6 +17,7 @@ from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 
 # revision identifiers, used by Alembic.
@@ -27,22 +28,56 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Create enum types
-    op.execute("CREATE TYPE postatus AS ENUM ('draft', 'pending_approval', 'approved', 'rejected', 'ordered', 'partially_received', 'received', 'closed', 'cancelled')")
-    op.execute("CREATE TYPE popriority AS ENUM ('low', 'normal', 'high', 'critical', 'aog')")
-    op.execute("CREATE TYPE approvalaction AS ENUM ('submitted', 'approved', 'rejected', 'returned', 'cancelled')")
-    op.execute("CREATE TYPE materialstage AS ENUM ('on_order', 'raw_material', 'in_inspection', 'wip', 'finished_goods', 'consumed', 'scrapped')")
-    op.execute("CREATE TYPE grnstatus AS ENUM ('draft', 'pending_inspection', 'inspection_passed', 'inspection_failed', 'accepted', 'rejected', 'partial')")
+    # Create enum types (using DO block to handle IF NOT EXISTS in PostgreSQL)
+    op.execute("""
+        DO $$ BEGIN
+            CREATE TYPE postatus AS ENUM ('draft', 'pending_approval', 'approved', 'rejected', 'ordered', 'partially_received', 'received', 'closed', 'cancelled');
+        EXCEPTION
+            WHEN duplicate_object THEN null;
+        END $$;
+    """)
+    op.execute("""
+        DO $$ BEGIN
+            CREATE TYPE popriority AS ENUM ('low', 'normal', 'high', 'critical', 'aog');
+        EXCEPTION
+            WHEN duplicate_object THEN null;
+        END $$;
+    """)
+    op.execute("""
+        DO $$ BEGIN
+            CREATE TYPE approvalaction AS ENUM ('submitted', 'approved', 'rejected', 'returned', 'cancelled');
+        EXCEPTION
+            WHEN duplicate_object THEN null;
+        END $$;
+    """)
+    op.execute("""
+        DO $$ BEGIN
+            CREATE TYPE materialstage AS ENUM ('on_order', 'raw_material', 'in_inspection', 'wip', 'finished_goods', 'consumed', 'scrapped');
+        EXCEPTION
+            WHEN duplicate_object THEN null;
+        END $$;
+    """)
+    op.execute("""
+        DO $$ BEGIN
+            CREATE TYPE grnstatus AS ENUM ('draft', 'pending_inspection', 'inspection_passed', 'inspection_failed', 'accepted', 'rejected', 'partial');
+        EXCEPTION
+            WHEN duplicate_object THEN null;
+        END $$;
+    """)
     
     # Create purchase_orders table
+    # Use postgresql.ENUM with create_type=False to avoid auto-creating
+    postatus_enum = postgresql.ENUM('draft', 'pending_approval', 'approved', 'rejected', 'ordered', 'partially_received', 'received', 'closed', 'cancelled', name='postatus', create_type=False)
+    popriority_enum = postgresql.ENUM('low', 'normal', 'high', 'critical', 'aog', name='popriority', create_type=False)
+    
     op.create_table('purchase_orders',
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('po_number', sa.String(length=50), nullable=False),
         sa.Column('supplier_id', sa.Integer(), nullable=False),
         sa.Column('created_by_id', sa.Integer(), nullable=False),
         sa.Column('approved_by_id', sa.Integer(), nullable=True),
-        sa.Column('status', sa.Enum('draft', 'pending_approval', 'approved', 'rejected', 'ordered', 'partially_received', 'received', 'closed', 'cancelled', name='postatus'), nullable=False),
-        sa.Column('priority', sa.Enum('low', 'normal', 'high', 'critical', 'aog', name='popriority'), nullable=False),
+        sa.Column('status', postatus_enum, nullable=False),
+        sa.Column('priority', popriority_enum, nullable=False),
         sa.Column('po_date', sa.Date(), nullable=False),
         sa.Column('required_date', sa.Date(), nullable=True),
         sa.Column('expected_delivery_date', sa.Date(), nullable=True),
@@ -82,6 +117,8 @@ def upgrade() -> None:
     op.create_index('ix_purchase_orders_po_number', 'purchase_orders', ['po_number'], unique=True)
     
     # Create po_line_items table
+    materialstage_enum = postgresql.ENUM('on_order', 'raw_material', 'in_inspection', 'wip', 'finished_goods', 'consumed', 'scrapped', name='materialstage', create_type=False)
+    
     op.create_table('po_line_items',
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('purchase_order_id', sa.Integer(), nullable=False),
@@ -95,7 +132,7 @@ def upgrade() -> None:
         sa.Column('unit_price', sa.Numeric(precision=12, scale=4), nullable=False),
         sa.Column('discount_percent', sa.Numeric(precision=5, scale=2), nullable=False),
         sa.Column('total_price', sa.Numeric(precision=14, scale=4), nullable=False),
-        sa.Column('material_stage', sa.Enum('on_order', 'raw_material', 'in_inspection', 'wip', 'finished_goods', 'consumed', 'scrapped', name='materialstage'), nullable=False),
+        sa.Column('material_stage', materialstage_enum, nullable=False),
         sa.Column('required_date', sa.Date(), nullable=True),
         sa.Column('promised_date', sa.Date(), nullable=True),
         sa.Column('specification', sa.String(length=200), nullable=True),
@@ -114,13 +151,15 @@ def upgrade() -> None:
     op.create_index('ix_po_line_items_id', 'po_line_items', ['id'])
     
     # Create po_approval_history table
+    approvalaction_enum = postgresql.ENUM('submitted', 'approved', 'rejected', 'returned', 'cancelled', name='approvalaction', create_type=False)
+    
     op.create_table('po_approval_history',
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('purchase_order_id', sa.Integer(), nullable=False),
         sa.Column('user_id', sa.Integer(), nullable=False),
-        sa.Column('action', sa.Enum('submitted', 'approved', 'rejected', 'returned', 'cancelled', name='approvalaction'), nullable=False),
-        sa.Column('from_status', sa.Enum('draft', 'pending_approval', 'approved', 'rejected', 'ordered', 'partially_received', 'received', 'closed', 'cancelled', name='postatus'), nullable=True),
-        sa.Column('to_status', sa.Enum('draft', 'pending_approval', 'approved', 'rejected', 'ordered', 'partially_received', 'received', 'closed', 'cancelled', name='postatus'), nullable=False),
+        sa.Column('action', approvalaction_enum, nullable=False),
+        sa.Column('from_status', postatus_enum, nullable=True),
+        sa.Column('to_status', postatus_enum, nullable=False),
         sa.Column('comments', sa.Text(), nullable=True),
         sa.Column('po_total_at_action', sa.Numeric(precision=14, scale=2), nullable=True),
         sa.Column('po_revision_at_action', sa.Integer(), nullable=True),
@@ -134,13 +173,15 @@ def upgrade() -> None:
     op.create_index('ix_po_approval_history_id', 'po_approval_history', ['id'])
     
     # Create goods_receipt_notes table
+    grnstatus_enum = postgresql.ENUM('draft', 'pending_inspection', 'inspection_passed', 'inspection_failed', 'accepted', 'rejected', 'partial', name='grnstatus', create_type=False)
+    
     op.create_table('goods_receipt_notes',
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('grn_number', sa.String(length=50), nullable=False),
         sa.Column('purchase_order_id', sa.Integer(), nullable=False),
         sa.Column('received_by_id', sa.Integer(), nullable=False),
         sa.Column('inspected_by_id', sa.Integer(), nullable=True),
-        sa.Column('status', sa.Enum('draft', 'pending_inspection', 'inspection_passed', 'inspection_failed', 'accepted', 'rejected', 'partial', name='grnstatus'), nullable=False),
+        sa.Column('status', grnstatus_enum, nullable=False),
         sa.Column('receipt_date', sa.Date(), nullable=False),
         sa.Column('inspection_date', sa.Date(), nullable=True),
         sa.Column('delivery_note_number', sa.String(length=100), nullable=True),

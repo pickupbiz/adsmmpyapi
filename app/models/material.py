@@ -102,6 +102,8 @@ class Material(Base, TimestampMixin):
     inventory = relationship("Inventory", back_populates="material")
     certifications = relationship("MaterialCertification", back_populates="material")
     order_items = relationship("OrderItem", back_populates="material")
+    po_line_items = relationship("POLineItem", back_populates="material")
+    material_instances = relationship("MaterialInstance", back_populates="material")
     
     def __repr__(self) -> str:
         return f"<Material(id={self.id}, part_number='{self.part_number}', name='{self.name}')>"

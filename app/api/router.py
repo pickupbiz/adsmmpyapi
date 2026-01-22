@@ -9,7 +9,8 @@ from app.api.endpoints import (
     inventory,
     certifications,
     orders,
-    purchase_orders
+    purchase_orders,
+    material_instances
 )
 
 api_router = APIRouter()
@@ -24,3 +25,4 @@ api_router.include_router(inventory.router)
 api_router.include_router(certifications.router)
 api_router.include_router(orders.router)
 api_router.include_router(purchase_orders.router)
+api_router.include_router(material_instances.router)
