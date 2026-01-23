@@ -107,7 +107,7 @@ def list_materials(
     - **material_type**: Filter by material type
     - **status**: Filter by material status
     - **category_id**: Filter by category
-    - **search**: Search in name or part number
+    - **search**: Search in title or item number
     """
     query = db.query(Material)
     
@@ -120,8 +120,8 @@ def list_materials(
     if search:
         search_term = f"%{search}%"
         query = query.filter(
-            (Material.name.ilike(search_term)) |
-            (Material.part_number.ilike(search_term))
+            (Material.title.ilike(search_term)) |
+            (Material.item_number.ilike(search_term))
         )
     
     total = query.count()
@@ -160,14 +160,14 @@ def create_material(
     current_user: User = Depends(require_engineer)
 ):
     """Create a new material."""
-    # Check for unique part number
+    # Check for unique item number
     existing = db.query(Material).filter(
-        Material.part_number == material_in.part_number
+        Material.item_number == material_in.item_number
     ).first()
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Part number already exists"
+            detail="Item number already exists"
         )
     
     # Convert category_id=0 to None (no category)
