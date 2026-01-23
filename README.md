@@ -18,6 +18,8 @@ A comprehensive FastAPI application for managing aerospace parts, materials, sup
 - **Reporting** - PDF, Excel, and CSV export capabilities
 - **WebSocket** - Real-time updates for PO status, materials, and alerts
 
+> **⚠️ IMPORTANT:** If you're setting up this project for the first time or updating from an older version, please read the [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md) for database schema changes and migration instructions.
+
 ## User Roles
 
 | Role              | Permissions                                                    |
@@ -131,12 +133,11 @@ CREATE DATABASE aerospace_parts;
 4. **Run database migrations:**
 
 ```bash
-# Generate initial migration
-alembic revision --autogenerate -m "Initial migration"
-
-# Apply migrations
+# Apply all migrations (including latest schema updates)
 alembic upgrade head
 ```
+
+> **📋 Important:** If you're updating from an older version, see [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md) for breaking changes and migration steps.
 
 5. **Create a superuser:**
 
