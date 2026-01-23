@@ -1,0 +1,41 @@
+[run]
+source = app
+omit =
+    */tests/*
+    */test_*.py
+    */__pycache__/*
+    */venv/*
+    */env/*
+    */migrations/*
+    */alembic/*
+    */scripts/*
+    */site-packages/*
+
+[report]
+# Regexes for lines to exclude from consideration
+exclude_lines =
+    # Have to re-enable the standard pragma
+    pragma: no cover
+
+    # Don't complain about missing debug-only code:
+    def __repr__
+    raise AssertionError
+    raise NotImplementedError
+
+    # Don't complain if tests don't hit defensive assertion code:
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+    if False:
+
+    # Don't complain about abstract methods
+    @abstractmethod
+    @abc.abstractmethod
+
+    # Don't complain about type checking
+    TYPE_CHECKING
+
+[html]
+directory = htmlcov
+
+[xml]
+output = coverage.xml

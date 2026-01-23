@@ -247,6 +247,55 @@ curl -X GET "http://localhost:5055/api/v1/materials" \
 - `GET /api/v1/orders/{id}` - Get order
 - `PUT /api/v1/orders/{id}` - Update order
 - `DELETE /api/v1/orders/{id}` - Delete order (draft only)
+
+## Testing
+
+### Run Tests
+
+```bash
+# Run all tests
+pytest
+
+# Run with verbose output
+pytest -v
+
+# Run specific test file
+pytest tests/test_purchase_order_workflow.py
+
+# Run specific test
+pytest tests/test_purchase_order_workflow.py::TestPOCreation::test_create_po_as_purchase_user
+```
+
+### Test Coverage
+
+```bash
+# Install dependencies (if not already installed)
+pip install -r requirements.txt
+
+# Run tests with coverage (terminal output)
+pytest --cov=app --cov-report=term-missing
+
+# Run tests with coverage (HTML report)
+pytest --cov=app --cov-report=html
+
+# Run tests with coverage (all reports)
+pytest --cov=app --cov-report=term-missing --cov-report=html --cov-report=xml --cov-branch
+
+# View HTML report
+# Open htmlcov/index.html in your browser
+```
+
+**Using Helper Scripts:**
+- **Linux/Mac:** `bash scripts/run_tests_with_coverage.sh`
+- **Windows:** `powershell scripts/run_tests_with_coverage.ps1`
+
+**Coverage Configuration:**
+- Coverage settings: `.coveragerc`
+- HTML reports: `htmlcov/` directory
+- XML reports: `coverage.xml`
+- Includes branch coverage analysis
+
+For more details, see [tests/README.md](./tests/README.md).
 - `POST /api/v1/orders/{id}/submit` - Submit for approval
 - `POST /api/v1/orders/{id}/approve` - Approve order
 
