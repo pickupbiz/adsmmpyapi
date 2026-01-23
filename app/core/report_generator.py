@@ -14,21 +14,29 @@ from decimal import Decimal
 from uuid import uuid4
 
 # PDF generation
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter, A4
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch
-from reportlab.platypus import (
-    SimpleDocTemplate, Table, TableStyle, Paragraph,
-    Spacer, Image, PageBreak
-)
-from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+try:
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import letter, A4
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    from reportlab.platypus import (
+        SimpleDocTemplate, Table, TableStyle, Paragraph,
+        Spacer, Image, PageBreak
+    )
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+    REPORTLAB_AVAILABLE = True
+except Exception:
+    REPORTLAB_AVAILABLE = False
 
 # Excel generation
-from openpyxl import Workbook
-from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
-from openpyxl.utils import get_column_letter
-from openpyxl.chart import BarChart, PieChart, Reference
+try:
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
+    from openpyxl.utils import get_column_letter
+    from openpyxl.chart import BarChart, PieChart, Reference
+    OPENPYXL_AVAILABLE = True
+except Exception:
+    OPENPYXL_AVAILABLE = False
 
 from app.core.config import settings
 
@@ -55,6 +63,10 @@ class PDFReportGenerator(ReportGenerator):
     """PDF report generation using ReportLab."""
     
     def __init__(self):
+        if not REPORTLAB_AVAILABLE:
+            raise RuntimeError(
+                "ReportLab is not installed. Install with `pip install reportlab` to enable PDF reports."
+            )
         super().__init__()
         self.styles = getSampleStyleSheet()
         self._setup_custom_styles()
@@ -321,6 +333,10 @@ class ExcelReportGenerator(ReportGenerator):
     """Excel report generation using openpyxl."""
     
     def __init__(self):
+        if not OPENPYXL_AVAILABLE:
+            raise RuntimeError(
+                "openpyxl is not installed. Install with `pip install openpyxl` to enable Excel reports."
+            )
         super().__init__()
         self.header_font = Font(bold=True, color='FFFFFF')
         self.header_fill = PatternFill(start_color='2C3E50', end_color='2C3E50', fill_type='solid')
