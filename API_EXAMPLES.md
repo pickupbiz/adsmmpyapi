@@ -2,6 +2,48 @@
 
 Base URL: `http://localhost:5055/api/v1`
 
+> **📋 IMPORTANT - Database Migration Guide (2026-01-23)**
+> 
+> **For Team Members:** Before using the API, ensure you have run the latest database migrations:
+> 
+> ```bash
+> alembic upgrade head
+> ```
+> 
+> **Key Changes:**
+> 1. **Field Renames:**
+>    - `materials.name` → `materials.title`
+>    - `materials.part_number` → `materials.item_number`
+> 
+> 2. **Enum Value Updates:**
+>    - **MaterialType:** Changed from `metal`, `composite`, `polymer`, etc. to `raw`, `wip`, `finished`
+>    - **MaterialStatus:** Changed from `active`, `discontinued`, etc. to `ordered`, `received`, `in_inspection`, `in_storage`, `issued`, `in_production`, `completed`, `rejected`
+> 
+> 3. **New Fields Added:**
+>    - PO integration: `po_id`, `po_line_item_id`, `supplier_id`, `supplier_batch_number`
+>    - Traceability: `heat_number`, `batch_number`, `quantity`, `min_stock_level`, `max_stock_level`
+>    - Storage: `location`, `storage_bin`
+>    - Lifecycle dates: `received_date`, `inspection_date`, `issued_date`, `production_start_date`, `completion_date`
+>    - QA: `qa_status`, `qa_inspected_by`, `certificate_number`
+>    - Barcode: `barcode_id`
+> 
+> 4. **Migration Files Applied:**
+>    - `20260123_040000_rename_material_columns.py` - Renames columns and adds new fields
+>    - `20260123_050000_replace_material_enum.py` - Replaces enum types with new values
+>    - `20260123_060000_fix_material_defaults.py` - Sets default values for existing records
+> 
+> **Breaking Changes:**
+> - All API requests/responses now use `item_number` instead of `part_number`
+> - All API requests/responses now use `title` instead of `name`
+> - Material type values must be: `raw`, `wip`, or `finished`
+> - Material status values must be: `ordered`, `received`, `in_inspection`, `in_storage`, `issued`, `in_production`, `completed`, or `rejected`
+> 
+> **Migration Steps:**
+> 1. Backup your database
+> 2. Run `alembic upgrade head`
+> 3. Verify enum values are correct
+> 4. Update any custom scripts to use new field names
+
 ---
 
 ## Table of Contents
@@ -22,6 +64,34 @@ Base URL: `http://localhost:5055/api/v1`
 15. [Reports](#15-reports)
 16. [WebSocket Real-time Updates](#16-websocket-real-time-updates)
 17. [Notifications](#17-notifications)
+
+> **📖 See [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md) for detailed migration instructions and breaking changes.**
+
+---
+
+## Quick Reference - Recent Changes (2026-01-23)
+
+### Field Name Updates
+- ✅ Use `item_number` instead of `part_number`
+- ✅ Use `title` instead of `name`
+
+### Enum Value Updates
+- ✅ **MaterialType:** Use `raw`, `wip`, `finished` (not `metal`, `composite`, etc.)
+- ✅ **MaterialStatus:** Use `ordered`, `received`, `in_inspection`, `in_storage`, `issued`, `in_production`, `completed`, `rejected` (not `active`, `discontinued`, etc.)
+
+### New Required Fields
+- ✅ `quantity` - Material quantity (required, default: 0)
+- ✅ `min_stock_level` - Minimum stock level (required, default: 0)
+- ✅ `unit_of_measure` - Unit of measure (required, default: "units")
+
+### New Optional Fields for PO Integration
+- `po_id`, `po_line_item_id` - PO references
+- `supplier_id`, `supplier_batch_number` - Supplier info
+- `heat_number`, `batch_number` - Traceability
+- `location`, `storage_bin` - Storage
+- `received_date`, `inspection_date`, `issued_date`, etc. - Lifecycle dates
+- `qa_status`, `qa_inspected_by`, `certificate_number` - QA fields
+- `barcode_id` - Barcode reference
 
 ---
 
@@ -541,7 +611,7 @@ Authorization: Bearer <access_token>
 
 **With Filters:**
 ```
-GET /api/v1/materials?material_type=metal&status=active&search=titanium
+GET /api/v1/materials?material_type=raw&status=ordered&search=titanium
 GET /api/v1/materials?category_id=1
 ```
 
@@ -551,12 +621,34 @@ GET /api/v1/materials?category_id=1
   "items": [
     {
       "id": 1,
-      "name": "Titanium Alloy Ti-6Al-4V",
-      "part_number": "MAT-TI-6AL4V-001",
+      "item_number": "MAT-TI-6AL4V-001",
+      "title": "Titanium Alloy Ti-6Al-4V",
       "specification": "AMS 4911",
-      "material_type": "alloy",
+      "heat_number": "HT-2026-001",
+      "batch_number": "BATCH-001",
+      "quantity": 100.0,
+      "unit_of_measure": "kg",
+      "min_stock_level": 10.0,
+      "max_stock_level": 500.0,
+      "material_type": "raw",
       "category_id": 1,
-      "status": "active",
+      "status": "ordered",
+      "po_id": 1,
+      "po_line_item_id": 1,
+      "supplier_id": 1,
+      "supplier_batch_number": "SUP-BATCH-001",
+      "project_id": null,
+      "location": "Warehouse A",
+      "storage_bin": "A-12-34",
+      "received_date": null,
+      "inspection_date": null,
+      "issued_date": null,
+      "production_start_date": null,
+      "completion_date": null,
+      "qa_status": null,
+      "qa_inspected_by": null,
+      "certificate_number": null,
+      "barcode_id": null,
       "density": 4.43,
       "tensile_strength": 950.0,
       "yield_strength": 880.0,
@@ -569,7 +661,6 @@ GET /api/v1/materials?category_id=1
       "shelf_life_days": null,
       "storage_requirements": "Store in dry conditions",
       "unit_cost": 85.50,
-      "unit_of_measure": "kg",
       "minimum_order_quantity": 10.0,
       "created_at": "2026-01-22T10:00:00",
       "updated_at": "2026-01-22T10:00:00",
@@ -604,15 +695,28 @@ Authorization: Bearer <access_token>
 Content-Type: application/json
 ```
 
-**Request Body - Titanium Alloy:**
+**Request Body - Raw Material (Titanium Alloy):**
 ```json
 {
-  "name": "Titanium Alloy Ti-6Al-4V",
-  "part_number": "MAT-TI-6AL4V-001",
+  "item_number": "MAT-TI-6AL4V-001",
+  "title": "Titanium Alloy Ti-6Al-4V",
   "specification": "AMS 4911",
-  "material_type": "alloy",
+  "heat_number": "HT-2026-001",
+  "batch_number": "BATCH-001",
+  "quantity": 100.0,
+  "unit_of_measure": "kg",
+  "min_stock_level": 10.0,
+  "max_stock_level": 500.0,
+  "material_type": "raw",
   "category_id": 1,
-  "status": "active",
+  "status": "ordered",
+  "po_id": 1,
+  "po_line_item_id": 1,
+  "supplier_id": 1,
+  "supplier_batch_number": "SUP-BATCH-001",
+  "project_id": null,
+  "location": "Warehouse A",
+  "storage_bin": "A-12-34",
   "density": 4.43,
   "tensile_strength": 950.0,
   "yield_strength": 880.0,
@@ -624,20 +728,23 @@ Content-Type: application/json
   "is_hazardous": false,
   "storage_requirements": "Store in dry conditions, avoid contact with steel",
   "unit_cost": 85.50,
-  "unit_of_measure": "kg",
   "minimum_order_quantity": 10.0
 }
 ```
 
-**Request Body - Aluminum Alloy:**
+**Request Body - Raw Material (Aluminum Alloy):**
 ```json
 {
-  "name": "Aluminum Alloy 7075-T6",
-  "part_number": "MAT-AL-7075-001",
+  "item_number": "MAT-AL-7075-001",
+  "title": "Aluminum Alloy 7075-T6",
   "specification": "AMS 4045",
-  "material_type": "alloy",
+  "quantity": 250.0,
+  "unit_of_measure": "kg",
+  "min_stock_level": 25.0,
+  "max_stock_level": 1000.0,
+  "material_type": "raw",
   "category_id": 1,
-  "status": "active",
+  "status": "ordered",
   "density": 2.81,
   "tensile_strength": 572.0,
   "yield_strength": 503.0,
@@ -648,50 +755,83 @@ Content-Type: application/json
   "ams_spec": "AMS 4045",
   "is_hazardous": false,
   "unit_cost": 12.75,
-  "unit_of_measure": "kg",
   "minimum_order_quantity": 25.0
 }
 ```
 
-**Request Body - Carbon Fiber Composite:**
+**Request Body - WIP Material (Carbon Fiber Composite):**
 ```json
 {
-  "name": "Carbon Fiber Prepreg T800",
-  "part_number": "MAT-CF-T800-001",
+  "item_number": "MAT-CF-T800-001",
+  "title": "Carbon Fiber Prepreg T800",
   "specification": "Toray T800S",
-  "material_type": "composite",
-  "status": "active",
+  "quantity": 50.0,
+  "unit_of_measure": "sqm",
+  "min_stock_level": 10.0,
+  "material_type": "wip",
+  "status": "in_production",
   "description": "Intermediate modulus carbon fiber prepreg",
   "is_hazardous": false,
   "shelf_life_days": 365,
   "storage_requirements": "Store at -18°C, sealed in original packaging",
   "unit_cost": 125.00,
-  "unit_of_measure": "sqm",
   "minimum_order_quantity": 50.0
 }
 ```
 
-**Request Body - Structural Adhesive:**
+**Request Body - Finished Goods:**
 ```json
 {
-  "name": "Epoxy Film Adhesive FM 300-2",
-  "part_number": "MAT-ADH-FM300-001",
-  "specification": "Cytec FM 300-2",
-  "material_type": "adhesive",
-  "status": "active",
-  "description": "Modified epoxy film adhesive for metal-to-metal bonding",
-  "is_hazardous": true,
-  "shelf_life_days": 180,
-  "storage_requirements": "Store at -18°C in sealed container",
-  "unit_cost": 450.00,
-  "unit_of_measure": "sqm",
-  "minimum_order_quantity": 10.0
+  "item_number": "MAT-FIN-001",
+  "title": "Completed Wing Panel Assembly",
+  "specification": "DWG-WP-001",
+  "quantity": 1.0,
+  "unit_of_measure": "units",
+  "min_stock_level": 0.0,
+  "material_type": "finished",
+  "status": "completed",
+  "project_id": 1,
+  "location": "Finished Goods Warehouse",
+  "storage_bin": "FG-01-05",
+  "completion_date": "2026-01-23T10:00:00",
+  "certificate_number": "CERT-2026-001",
+  "unit_cost": 12500.00
 }
 ```
 
-**Material Types:** `metal`, `composite`, `polymer`, `ceramic`, `alloy`, `coating`, `adhesive`, `other`
-
-**Material Status:** `active`, `discontinued`, `pending_approval`, `restricted`
+> **⚠️ IMPORTANT - Database Schema Updates (2026-01-23):**
+> 
+> **Field Name Changes:**
+> - `name` → `title` (Material name/title)
+> - `part_number` → `item_number` (Material item number)
+> 
+> **Material Type Enum Values (UPDATED):**
+> - `raw` - Raw materials from suppliers
+> - `wip` - Work-in-progress materials
+> - `finished` - Finished goods/assemblies
+> 
+> **Material Status Enum Values (UPDATED):**
+> - `ordered` - Material ordered via PO
+> - `received` - Material received at warehouse
+> - `in_inspection` - Material under QA inspection
+> - `in_storage` - Material in storage
+> - `issued` - Material issued to production
+> - `in_production` - Material in production process
+> - `completed` - Material/assembly completed
+> - `rejected` - Material rejected by QA
+> 
+> **New Fields for PO Integration:**
+> - `po_id` - Reference to Purchase Order
+> - `po_line_item_id` - Reference to PO Line Item
+> - `supplier_id` - Supplier reference
+> - `supplier_batch_number` - Supplier's batch number
+> - `project_id` - Project allocation
+> - `heat_number`, `batch_number` - Traceability fields
+> - `quantity`, `min_stock_level`, `max_stock_level` - Stock management
+> - `location`, `storage_bin` - Storage location
+> - `received_date`, `inspection_date`, `issued_date`, `production_start_date`, `completion_date` - Lifecycle dates
+> - `qa_status`, `qa_inspected_by`, `certificate_number` - Quality assurance fields
+> - `barcode_id` - Barcode reference
 
 ---
 
@@ -705,8 +845,12 @@ Content-Type: application/json
 **Request Body:**
 ```json
 {
+  "title": "Updated Material Title",
+  "quantity": 150.0,
   "unit_cost": 92.00,
-  "status": "active",
+  "status": "in_storage",
+  "location": "Warehouse B",
+  "storage_bin": "B-05-12",
   "storage_requirements": "Updated storage requirements"
 }
 ```
@@ -1966,8 +2110,8 @@ Content-Type: application/json
 |--------|---------------|
 | **User Roles** | `admin`, `director`, `head_of_operations`, `store`, `purchase`, `qa`, `engineer`, `technician`, `viewer` |
 | **Departments** | `OPERATIONS`, `PROCUREMENT`, `QUALITY_ASSURANCE`, `ENGINEERING`, `PRODUCTION`, `STORES`, `FINANCE`, `ADMINISTRATION` |
-| Material Type | `metal`, `composite`, `polymer`, `ceramic`, `alloy`, `coating`, `adhesive`, `other` |
-| Material Status | `active`, `discontinued`, `pending_approval`, `restricted` |
+| Material Type | `raw`, `wip`, `finished` |
+| Material Status | `ordered`, `received`, `in_inspection`, `in_storage`, `issued`, `in_production`, `completed`, `rejected` |
 | **Material Stage** | `on_order`, `in_inspection`, `raw_material`, `wip`, `finished_goods`, `consumed`, `scrapped` |
 | Part Status | `design`, `prototype`, `production`, `obsolete`, `restricted` |
 | Part Criticality | `critical`, `major`, `minor`, `standard` |
@@ -2671,7 +2815,7 @@ Content-Type: application/json
         "ts": "2026-01-23T10:30:00.000000",
         "po": "PO-2026-001",
         "pn": "MAT-001",
-        "name": "Aluminum Sheet 6061-T6",
+        "title": "Aluminum Sheet 6061-T6",
         "spec": "0.125\" x 48\" x 96\"",
         "lot": "LOT-2026-001",
         "heat": "HT-123456",
@@ -2723,8 +2867,8 @@ Content-Type: application/json
     "quantity_scanned": 50.0,
     "quantity_before": 100.0,
     "quantity_after": 100.0,
-    "status_before": "active",
-    "status_after": "active",
+    "status_before": "in_storage",
+    "status_after": "in_storage",
     "stage_before": "received",
     "stage_after": "received",
     "location_from": null,
@@ -2802,7 +2946,7 @@ Content-Type: application/json
     "barcode_id": 1,
     "barcode_status": "active",
     "po_number": "PO-2026-001",
-    "material_part_number": "MAT-001",
+    "material_item_number": "MAT-001",
     "current_quantity": 100.0,
     "errors": [],
     "warnings": [],
@@ -2845,7 +2989,7 @@ Content-Type: application/json
         "ts": "2026-01-23T11:00:00.000000",
         "po": "PO-2026-001",
         "pn": "MAT-001",
-        "name": "Aluminum Sheet 6061-T6",
+        "title": "Aluminum Sheet 6061-T6",
         "lot": "LOT-2026-001",
         "heat": "HT-123456",
         "qty": 10.0,
@@ -2926,7 +3070,7 @@ Authorization: Bearer {token}
             "entity_type": "wip",
             "traceability_stage": "consumed",
             "po_number": "PO-2026-001",
-            "material_part_number": "MAT-001",
+            "material_item_number": "MAT-001",
             "lot_number": "LOT-2026-001",
             "quantity": 0.0,
             "created_at": "2026-01-23T11:00:00.000000+00:00"
@@ -2937,7 +3081,7 @@ Authorization: Bearer {token}
             "entity_type": "raw_material",
             "traceability_stage": "consumed",
             "po_number": "PO-2026-001",
-            "material_part_number": "MAT-001",
+            "material_item_number": "MAT-001",
             "lot_number": "LOT-2026-001",
             "quantity": 0.0,
             "created_at": "2026-01-23T10:30:00.000000+00:00"
@@ -3778,7 +3922,8 @@ Content-Type: application/json
   "format": "excel",
   "material_ids": [45, 67],
   "category_ids": [1, 2],
-  "status_filter": ["in_storage", "in_production"]
+  "status_filter": ["in_storage", "in_production"],
+  "material_type_filter": ["raw", "wip"]
 }
 ```
 
