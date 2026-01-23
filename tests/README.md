@@ -50,8 +50,27 @@ pytest tests/test_purchase_order_workflow.py::TestPOCreation::test_create_po_as_
 ### Run with Coverage
 
 ```bash
+# Install coverage dependencies first
+pip install -r requirements.txt
+
+# Run tests with coverage (terminal output)
+pytest --cov=app --cov-report=term-missing
+
+# Run tests with coverage (HTML report)
 pytest --cov=app --cov-report=html
+
+# Run tests with coverage (all reports)
+pytest --cov=app --cov-report=term-missing --cov-report=html --cov-report=xml
+
+# View HTML report (after running with --cov-report=html)
+# Open htmlcov/index.html in your browser
 ```
+
+**Coverage Configuration:**
+- Coverage settings are in `.coveragerc`
+- HTML reports are generated in `htmlcov/` directory
+- XML reports are generated as `coverage.xml`
+- Coverage includes branch coverage analysis
 
 ### Run with Verbose Output
 
