@@ -2,7 +2,7 @@
 from datetime import datetime
 from typing import Optional, List
 from enum import Enum
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_validator, model_validator
 
 
 class MaterialType(str, Enum):
@@ -63,9 +63,9 @@ class MaterialBase(BaseModel):
     specification: Optional[str] = Field(None, max_length=200)
     heat_number: Optional[str] = Field(None, max_length=100)
     batch_number: Optional[str] = Field(None, max_length=100)
-    quantity: float = Field(..., ge=0)
+    quantity: float = Field(default=0, ge=0)
     unit_of_measure: str = Field("units", max_length=20)
-    min_stock_level: float = Field(0, ge=0)
+    min_stock_level: Optional[float] = Field(0, ge=0)
     max_stock_level: Optional[float] = Field(None, ge=0)
     material_type: MaterialType = MaterialType.RAW
     category_id: Optional[int] = None
@@ -180,3 +180,14 @@ class MaterialResponse(MaterialBase):
     category: Optional[MaterialCategoryResponse] = None
     
     model_config = ConfigDict(from_attributes=True)
+    
+    @model_validator(mode='after')
+    def set_defaults(self):
+        """Set default values for None fields."""
+        if self.min_stock_level is None:
+            self.min_stock_level = 0.0
+        if self.quantity is None:
+            self.quantity = 0.0
+        if self.unit_of_measure is None or self.unit_of_measure == '':
+            self.unit_of_measure = 'units'
+        return self
