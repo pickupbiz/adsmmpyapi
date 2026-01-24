@@ -101,18 +101,33 @@ scripts/
 
 ### Setup
 
-1. **Clone the repository and install dependencies:**
+1. **Clone the repository and set up virtual environment:**
 
-```bash
-cd adsmmpyapi
+**Windows (PowerShell) - Recommended:**
+```powershell
+cd d:\source\Python\FastAPI\adsmmpyapi
+
+# Run setup script (creates venv and installs dependencies)
+powershell scripts/setup_venv.ps1
+```
+
+**Windows (Manual):**
+```powershell
+cd d:\source\Python\FastAPI\adsmmpyapi
 python -m venv venv
-# Windows
-venv\Scripts\activate
-# Linux/Mac
-source venv/bin/activate
-
+.\venv\Scripts\activate.ps1
 pip install -r requirements.txt
 ```
+
+**Linux/Mac:**
+```bash
+cd /path/to/adsmmpyapi
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+> **⚠️ Important:** Always activate the virtual environment before running the application!
 
 2. **Configure environment variables:**
 
@@ -147,9 +162,31 @@ python scripts/create_superuser.py admin@example.com your_password "Admin User"
 
 6. **Run the application:**
 
+**Windows (PowerShell) - Recommended:**
+```powershell
+# Use the run script (automatically activates venv)
+powershell scripts/run_app.ps1
+```
+
+**Windows (Manual):**
+```powershell
+# Activate virtual environment first!
+.\venv\Scripts\activate.ps1
+
+# Then run the application
+python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 5055
+```
+
+**Linux/Mac:**
 ```bash
+# Activate virtual environment first!
+source venv/bin/activate
+
+# Then run the application
 uvicorn app.main:app --reload --host 0.0.0.0 --port 5055
 ```
+
+> **⚠️ Common Error:** If you see `ModuleNotFoundError: No module named 'sqlalchemy'`, it means the virtual environment is not activated. Always activate the venv before running!
 
 ## API Documentation
 
