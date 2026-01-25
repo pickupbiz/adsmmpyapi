@@ -56,13 +56,20 @@ class OrderItemUpdate(BaseModel):
     notes: Optional[str] = None
 
 
-class OrderItemResponse(OrderItemBase):
+class OrderItemResponse(BaseModel):
     """Schema for order item response."""
     id: int
     order_id: int
-    quantity_received: float
+    material_id: int
+    quantity_ordered: float
+    quantity_received: float = 0.0
+    unit_of_measure: str
+    unit_price: float
     total_price: float
     is_fully_received: bool
+    expected_delivery_date: Optional[date] = None
+    specification_notes: Optional[str] = None
+    notes: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     
@@ -108,19 +115,30 @@ class OrderUpdate(BaseModel):
     notes: Optional[str] = None
 
 
-class OrderResponse(OrderBase):
+# FIXED: Complete OrderResponse schema with ALL fields from model
+class OrderResponse(BaseModel):
     """Schema for order response."""
     id: int
     order_number: str
+    supplier_id: int
     created_by: int
-    actual_delivery_date: Optional[date]
+    status: OrderStatus
+    priority: OrderPriority
+    order_date: Optional[date] = None
+    expected_delivery_date: Optional[date] = None
+    actual_delivery_date: Optional[date] = None
+    shipping_method: Optional[str] = None
+    tracking_number: Optional[str] = None
+    purchase_order_number: Optional[str] = None
+    work_order_reference: Optional[str] = None
+    requires_certification: bool
+    certification_received: bool
     subtotal: float
     tax: float
     shipping_cost: float
     total: float
     currency: str
-    tracking_number: Optional[str]
-    certification_received: bool
+    notes: Optional[str] = None
     items: List[OrderItemResponse] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
