@@ -1,22 +1,37 @@
 """FastAPI application entry point."""
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from app.core.config import settings
 from app.api.router import api_router
-from app.db.session import sync_engine
-from app.db.base import Base
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan events."""
-    # Startup: Create tables if they don't exist (for development)
-    # In production, use Alembic migrations instead
-    # Base.metadata.create_all(bind=sync_engine)
+    # Startup: Application initialization
+    # Note: Database connections are created lazily when needed
+    # In production, use Alembic migrations for schema management
+    try:
+        # Any startup logic can go here
+        # Database connections are lazy - they won't connect until first use
+        pass
+    except Exception as e:
+        # Log error but don't fail startup
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.warning(f"Startup warning (non-critical): {e}")
+    
     yield
-    # Shutdown
-    pass
+    
+    # Shutdown: Cleanup if needed
+    try:
+        # Any cleanup logic can go here
+        pass
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.warning(f"Shutdown warning (non-critical): {e}")
 
 
 def create_application() -> FastAPI:
@@ -65,6 +80,15 @@ inventory, certifications, and procurement orders.
         allow_headers=["*"],
     )
     
+    # Root endpoint - simple welcome message (no authentication required)
+    @app.get("/", tags=["Root"])
+    def root():
+        """Root endpoint - API status check."""
+        return Response(
+            content="ADS material Management API is up and running",
+            media_type="text/plain"
+        )
+    
     # Include API router
     app.include_router(api_router, prefix=settings.API_V1_PREFIX)
     
@@ -78,6 +102,9 @@ inventory, certifications, and procurement orders.
 
 
 # Create the application instance
+# IMPORTANT: Only create ONE app instance using create_application()
+# Do NOT create a second FastAPI() instance here, as it will overwrite
+# the configured app (lifespan, CORS, routers, Swagger) and cause 404 errors
 app = create_application()
 
 

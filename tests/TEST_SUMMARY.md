@@ -154,8 +154,17 @@ pip install -r requirements.txt
 # Run all tests
 pytest
 
-# Run with coverage
+# Install dependencies (including pytest-cov)
+pip install -r requirements.txt
+
+# Run with coverage (terminal output)
+pytest --cov=app --cov-report=term-missing
+
+# Run with coverage (HTML report)
 pytest --cov=app --cov-report=html
+
+# View HTML report
+# Open htmlcov/index.html in your browser
 
 # Run specific test file
 pytest tests/test_purchase_order_workflow.py
