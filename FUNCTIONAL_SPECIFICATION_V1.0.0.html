@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Functional Specification Document v1.0.0 - ADS Innotech</title>
+    
+    <style>
+        @media print {
+            @page {
+                size: A4;
+                margin: 2cm;
+            }
+            body {
+                font-size: 11pt;
+            }
+            h1 {
+                page-break-after: avoid;
+            }
+            h2 {
+                page-break-after: avoid;
+            }
+            table {
+                page-break-inside: avoid;
+            }
+        }
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            font-size: 12pt;
+            line-height: 1.6;
+            color: #333;
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #1a1a1a;
+            border-bottom: 3px solid #0066cc;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        h2 {
+            color: #0066cc;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #333;
+            margin-top: 20px;
+        }
+        h4 {
+            color: #555;
+            margin-top: 15px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #0066cc;
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 30px;
+        }
+        li {
+            margin: 5px 0;
+        }
+        hr {
+            border: none;
+            border-top: 2px solid #ddd;
+            margin: 20px 0;
+        }
+        p {
+            margin: 10px 0;
+        }
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+    
+</head>
+<body>
+    <h1>FUNCTIONAL SPECIFICATION DOCUMENT</h1>
+<h2>Aerospace Parts Material Management System</h2>
+<strong>Version:</strong> 1.0.0
+<strong>Date:</strong> January 25, 2026
+<strong>Prepared By:</strong> PickupBiz Software Pvt Ltd
+<strong>Prepared For:</strong> ADS Innotech
+<hr>
+<h2>DOCUMENT CONTROL</h2>
+<table>
+<tr>
+<td><strong>Item</strong></td>
+<td><strong>Details</strong></td>
+<p></tr></p>
+<tr>
+<th><strong>Document Title</strong></th>
+<th>Functional Specification Document - Aerospace Parts Material Management System</th>
+<p></tr></p>
+<tr>
+<td><strong>Version</strong></td>
+<td>1.0.0</td>
+<p></tr></p>
+<tr>
+<td><strong>Date</strong></td>
+<td>January 25, 2026</td>
+<p></tr></p>
+<tr>
+<td><strong>Author</strong></td>
+<td>PickupBiz Software Pvt Ltd</td>
+<p></tr></p>
+<tr>
+<td><strong>Client</strong></td>
+<td>ADS Innotech</td>
+<p></tr></p>
+<tr>
+<td><strong>Status</strong></td>
+<td>Final</td>
+<p></tr></p>
+<tr>
+<td><strong>Classification</strong></td>
+<td>Confidential</td>
+<p></tr></p>
+<p></table></p>
+<hr>
+<h2>TABLE OF CONTENTS</h2>
+<ol>
+<li><a href="#1-executive-summary">Executive Summary</a></li>
+<li><a href="#2-introduction">Introduction</a></li>
+<li><a href="#3-system-overview">System Overview</a></li>
+<li><a href="#4-functional-requirements">Functional Requirements</a></li>
+<li><a href="#5-user-roles-and-permissions">User Roles and Permissions</a></li>
+<li><a href="#6-api-specifications">API Specifications</a></li>
+<li><a href="#7-technical-architecture">Technical Architecture</a></li>
+<li><a href="#8-non-functional-requirements">Non-Functional Requirements</a></li>
+<li><a href="#9-data-models">Data Models</a></li>
+<li><a href="#10-appendices">Appendices</a></li>
+<p></ol></p>
+<hr>
+<h2>1. EXECUTIVE SUMMARY</h2>
+<h3>1.1 Purpose</h3>
+<p>This Functional Specification Document (FSD) describes the functional requirements, features, and specifications for the <strong>Aerospace Parts Material Management System</strong> developed by PickupBiz Software Pvt Ltd for ADS Innotech.</p>
+<h3>1.2 Scope</h3>
+<p>The system is a comprehensive web-based application designed to manage aerospace parts, materials, suppliers, inventory, certifications, and procurement orders. It provides end-to-end traceability, role-based access control, workflow management, and real-time monitoring capabilities.</p>
+<h3>1.3 Key Features</h3>
+<ul>
+<li><strong>JWT Authentication</strong> with role-based access control (RBAC)</li>
+<li><strong>Material Management</strong> with specifications and compliance tracking</li>
+<li><strong>Parts Management</strong> with Bill of Materials (BOM)</li>
+<li><strong>Supplier Management</strong> with aerospace certifications</li>
+<li><strong>Inventory Tracking</strong> with full lot/batch traceability</li>
+<li><strong>Purchase Order Management</strong> with approval workflows</li>
+<li><strong>Barcode & QR Code</strong> generation and scanning</li>
+<li><strong>Real-time Dashboard</strong> and analytics</li>
+<li><strong>Reporting</strong> in PDF, Excel, and CSV formats</li>
+<li><strong>WebSocket</strong> support for real-time updates</li>
+<p></ol></p>
+<hr>
+<h2>2. INTRODUCTION</h2>
+<h3>2.1 Background</h3>
+<p>ADS Innotech requires a comprehensive material management system to track aerospace parts and materials throughout their lifecycle, from procurement to production, ensuring compliance with industry standards and maintaining full traceability.</p>
+<h3>2.2 Objectives</h3>
+<ul>
+<li>Streamline material procurement and inventory management</li>
+<li>Ensure compliance with aerospace industry standards (AS9100, NADCAP, ITAR)</li>
+<li>Provide complete traceability of materials and parts</li>
+<li>Automate approval workflows for purchase orders</li>
+<li>Enable real-time monitoring and reporting</li>
+<li>Support barcode-based material tracking</li>
+<p></ul></p>
+<h3>2.3 Document Conventions</h3>
+<ul>
+<li><strong>Bold</strong> text indicates important terms or concepts</li>
+<li><em>Italic</em> text indicates emphasis</li>
+<li>Code blocks indicate technical specifications</li>
+<li>Tables provide structured information</li>
+<p></ul></p>
+<hr>
+<h2>3. SYSTEM OVERVIEW</h2>
+<h3>3.1 System Architecture</h3>
+<p>The system is built using:</p>
+<ul>
+<li><strong>Backend:</strong> FastAPI (Python 3.10+)</li>
+<li><strong>Database:</strong> PostgreSQL 13+</li>
+<li><strong>Authentication:</strong> JWT (JSON Web Tokens)</li>
+<li><strong>API Style:</strong> RESTful API with WebSocket support</li>
+<li><strong>Frontend:</strong> React (separate application)</li>
+<p></ul></p>
+<h3>3.2 System Components</h3>
+<h4>3.2.1 Core Modules</h4>
+<ol>
+<li><strong>Authentication & Authorization Module</strong></li>
+<li><strong>User Management Module</strong></li>
+<li><strong>Material Management Module</strong></li>
+<li><strong>Parts Management Module</strong></li>
+<li><strong>Supplier Management Module</strong></li>
+<li><strong>Inventory Management Module</strong></li>
+<li><strong>Purchase Order Management Module</strong></li>
+<li><strong>Certification Management Module</strong></li>
+<li><strong>Barcode Management Module</strong></li>
+<li><strong>Workflow Management Module</strong></li>
+<li><strong>Dashboard & Analytics Module</strong></li>
+<li><strong>Reporting Module</strong></li>
+<li><strong>Notification Module</strong></li>
+<p></ol></p>
+<h3>3.3 System Interfaces</h3>
+<ul>
+<li><strong>REST API:</strong> <code>/api/v1/*</code> endpoints</li>
+<li><strong>WebSocket:</strong> <code>/api/v1/ws</code> for real-time updates</li>
+<li><strong>Swagger UI:</strong> <code>/api/v1/docs</code> for API documentation</li>
+<li><strong>ReDoc:</strong> <code>/api/v1/redoc</code> for alternative API documentation</li>
+<p></ul></p>
+<hr>
+<h2>4. FUNCTIONAL REQUIREMENTS</h2>
+<h3>4.1 Authentication & Authorization Module</h3>
+<h4>4.1.1 User Authentication</h4>
+<ul>
+<li><strong>FR-AUTH-001:</strong> System shall provide user login functionality using email and password</li>
+<li><strong>FR-AUTH-002:</strong> System shall generate JWT access tokens (90 minutes expiry) and refresh tokens (7 days expiry)</li>
+<li><strong>FR-AUTH-003:</strong> System shall support token refresh mechanism</li>
+<li><strong>FR-AUTH-004:</strong> System shall log all login attempts for security auditing</li>
+<li><strong>FR-AUTH-005:</strong> System shall track last login timestamp for each user</li>
+<li><strong>FR-AUTH-006:</strong> System shall support password change functionality</li>
+<li><strong>FR-AUTH-007:</strong> System shall support user logout (token invalidation)</li>
+<p></ul></p>
+<h4>4.1.2 User Registration</h4>
+<ul>
+<li><strong>FR-AUTH-008:</strong> System shall allow user registration (admin only)</li>
+<li><strong>FR-AUTH-009:</strong> System shall validate email uniqueness</li>
+<li><strong>FR-AUTH-010:</strong> System shall assign roles during registration</li>
+<p></ul></p>
+<h4>4.1.3 Token Management</h4>
+<ul>
+<li><strong>FR-AUTH-011:</strong> System shall validate JWT tokens on each protected request</li>
+<li><strong>FR-AUTH-012:</strong> System shall return 401 Unauthorized for invalid/expired tokens</li>
+<li><strong>FR-AUTH-013:</strong> System shall support token validation endpoint</li>
+<p></ul></p>
+<h3>4.2 User Management Module</h3>
+<h4>4.2.1 User CRUD Operations</h4>
+<ul>
+<li><strong>FR-USER-001:</strong> System shall allow listing all users (paginated)</li>
+<li><strong>FR-USER-002:</strong> System shall allow viewing user details by ID</li>
+<li><strong>FR-USER-003:</strong> System shall allow updating user information</li>
+<li><strong>FR-USER-004:</strong> System shall allow deleting users (soft delete)</li>
+<li><strong>FR-USER-005:</strong> System shall support user activation/deactivation</li>
+<p></ul></p>
+<h4>4.2.2 User Profile</h4>
+<ul>
+<li><strong>FR-USER-006:</strong> System shall provide endpoint to get current user information (<code>/auth/me</code>)</li>
+<li><strong>FR-USER-007:</strong> System shall track user permissions based on role</li>
+<li><strong>FR-USER-008:</strong> System shall maintain user login history</li>
+<p></ul></p>
+<h3>4.3 Material Management Module</h3>
+<h4>4.3.1 Material CRUD Operations</h4>
+<ul>
+<li><strong>FR-MAT-001:</strong> System shall allow creating materials with specifications</li>
+<li><strong>FR-MAT-002:</strong> System shall allow listing materials with pagination and filtering</li>
+<li><strong>FR-MAT-003:</strong> System shall allow viewing material details by ID</li>
+<li><strong>FR-MAT-004:</strong> System shall allow updating material information</li>
+<li><strong>FR-MAT-005:</strong> System shall allow deleting materials</li>
+<li><strong>FR-MAT-006:</strong> System shall enforce unique item numbers</li>
+<p></ul></p>
+<h4>4.3.2 Material Attributes</h4>
+<ul>
+<li><strong>FR-MAT-007:</strong> System shall track material item number, title, and specification</li>
+<li><strong>FR-MAT-008:</strong> System shall track heat number and batch number</li>
+<li><strong>FR-MAT-009:</strong> System shall track quantity and unit of measure</li>
+<li><strong>FR-MAT-010:</strong> System shall track minimum and maximum stock levels</li>
+<li><strong>FR-MAT-011:</strong> System shall categorize materials by type (Raw, WIP, Finished)</li>
+<li><strong>FR-MAT-012:</strong> System shall track material status (Active, Inactive, Obsolete)</li>
+<li><strong>FR-MAT-013:</strong> System shall link materials to purchase orders</li>
+<li><strong>FR-MAT-014:</strong> System shall link materials to suppliers</li>
+<li><strong>FR-MAT-015:</strong> System shall link materials to projects</li>
+<p></ul></p>
+<h4>4.3.3 Material Categories</h4>
+<ul>
+<li><strong>FR-MAT-016:</strong> System shall support hierarchical material categories</li>
+<li><strong>FR-MAT-017:</strong> System shall allow creating, updating, and deleting categories</li>
+<li><strong>FR-MAT-018:</strong> System shall allow filtering materials by category</li>
+<p></ul></p>
+<h4>4.3.4 Material Search</h4>
+<ul>
+<li><strong>FR-MAT-019:</strong> System shall support searching materials by title or item number</li>
+<li><strong>FR-MAT-020:</strong> System shall support filtering by material type, status, and category</li>
+<p></ul></p>
+<h3>4.4 Parts Management Module</h3>
+<h4>4.4.1 Part CRUD Operations</h4>
+<ul>
+<li><strong>FR-PART-001:</strong> System shall allow creating parts with specifications</li>
+<li><strong>FR-PART-002:</strong> System shall allow listing parts with pagination</li>
+<li><strong>FR-PART-003:</strong> System shall allow viewing part details by ID</li>
+<li><strong>FR-PART-004:</strong> System shall allow updating part information</li>
+<li><strong>FR-PART-005:</strong> System shall allow deleting parts</li>
+<p></ul></p>
+<h4>4.4.2 Part Attributes</h4>
+<ul>
+<li><strong>FR-PART-006:</strong> System shall track part number, title, and description</li>
+<li><strong>FR-PART-007:</strong> System shall track part status (Active, Inactive, Obsolete)</li>
+<li><strong>FR-PART-008:</strong> System shall track part criticality level (Low, Medium, High, Critical)</li>
+<li><strong>FR-PART-009:</strong> System shall track revision number and drawing number</li>
+<p></ul></p>
+<h4>4.4.3 Bill of Materials (BOM)</h4>
+<ul>
+<li><strong>FR-PART-010:</strong> System shall allow adding materials to parts (BOM)</li>
+<li><strong>FR-PART-011:</strong> System shall allow viewing all materials for a part</li>
+<li><strong>FR-PART-012:</strong> System shall allow updating BOM entries</li>
+<li><strong>FR-PART-013:</strong> System shall allow removing materials from BOM</li>
+<li><strong>FR-PART-014:</strong> System shall track quantity per part for each material</li>
+<p></ul></p>
+<h3>4.5 Supplier Management Module</h3>
+<h4>4.5.1 Supplier CRUD Operations</h4>
+<ul>
+<li><strong>FR-SUP-001:</strong> System shall allow creating supplier records</li>
+<li><strong>FR-SUP-002:</strong> System shall allow listing suppliers with pagination</li>
+<li><strong>FR-SUP-003:</strong> System shall allow viewing supplier details by ID</li>
+<li><strong>FR-SUP-004:</strong> System shall allow updating supplier information</li>
+<li><strong>FR-SUP-005:</strong> System shall allow deleting suppliers</li>
+<p></ul></p>
+<h4>4.5.2 Supplier Attributes</h4>
+<ul>
+<li><strong>FR-SUP-006:</strong> System shall track supplier name, code, and contact information</li>
+<li><strong>FR-SUP-007:</strong> System shall track supplier status (Active, Inactive, Suspended)</li>
+<li><strong>FR-SUP-008:</strong> System shall track supplier tier (Tier 1, Tier 2, Tier 3)</li>
+<li><strong>FR-SUP-009:</strong> System shall track supplier address and tax information</li>
+<li><strong>FR-SUP-010:</strong> System shall link suppliers to materials</li>
+<p></ul></p>
+<h4>4.5.3 Supplier Certifications</h4>
+<ul>
+<li><strong>FR-SUP-011:</strong> System shall track aerospace certifications (AS9100, NADCAP, ITAR)</li>
+<li><strong>FR-SUP-012:</strong> System shall track certification expiry dates</li>
+<li><strong>FR-SUP-013:</strong> System shall alert on certification expiry</li>
+<p></ul></p>
+<h3>4.6 Inventory Management Module</h3>
+<h4>4.6.1 Inventory Tracking</h4>
+<ul>
+<li><strong>FR-INV-001:</strong> System shall allow creating inventory records</li>
+<li><strong>FR-INV-002:</strong> System shall allow listing inventory items with pagination</li>
+<li><strong>FR-INV-003:</strong> System shall allow viewing inventory details by ID</li>
+<li><strong>FR-INV-004:</strong> System shall allow updating inventory information</li>
+<li><strong>FR-INV-005:</strong> System shall track inventory status (Available, Reserved, Allocated, Consumed)</li>
+<p></ul></p>
+<h4>4.6.2 Inventory Transactions</h4>
+<ul>
+<li><strong>FR-INV-006:</strong> System shall record all inventory transactions</li>
+<li><strong>FR-INV-007:</strong> System shall support transaction types (Receive, Issue, Return, Adjust, Transfer)</li>
+<li><strong>FR-INV-008:</strong> System shall maintain transaction history for each inventory item</li>
+<li><strong>FR-INV-009:</strong> System shall track lot/batch numbers for traceability</li>
+<p></ul></p>
+<h4>4.6.3 Material Instances</h4>
+<ul>
+<li><strong>FR-INV-010:</strong> System shall track individual material instances</li>
+<li><strong>FR-INV-011:</strong> System shall support material instance status lifecycle</li>
+<li><strong>FR-INV-012:</strong> System shall track material allocations to projects/work orders</li>
+<li><strong>FR-INV-013:</strong> System shall support material receipt from Goods Receipt Notes (GRN)</li>
+<li><strong>FR-INV-014:</strong> System shall support bulk material receipt</li>
+<p></ul></p>
+<h3>4.7 Purchase Order Management Module</h3>
+<h4>4.7.1 Purchase Order CRUD Operations</h4>
+<ul>
+<li><strong>FR-PO-001:</strong> System shall allow creating purchase orders</li>
+<li><strong>FR-PO-002:</strong> System shall allow listing purchase orders with pagination and filtering</li>
+<li><strong>FR-PO-003:</strong> System shall allow viewing purchase order details by ID</li>
+<li><strong>FR-PO-004:</strong> System shall allow updating purchase orders (draft status only)</li>
+<li><strong>FR-PO-005:</strong> System shall allow deleting purchase orders (draft status only)</li>
+<p></ul></p>
+<h4>4.7.2 Purchase Order Attributes</h4>
+<ul>
+<li><strong>FR-PO-006:</strong> System shall track PO number, supplier, and order date</li>
+<li><strong>FR-PO-007:</strong> System shall track PO status (Draft, Submitted, Approved, Rejected, Ordered, Received, Completed, Cancelled)</li>
+<li><strong>FR-PO-008:</strong> System shall track expected delivery date</li>
+<li><strong>FR-PO-009:</strong> System shall track total PO value</li>
+<li><strong>FR-PO-010:</strong> System shall link POs to projects</li>
+<p></ul></p>
+<h4>4.7.3 Purchase Order Line Items</h4>
+<ul>
+<li><strong>FR-PO-011:</strong> System shall allow adding line items to purchase orders</li>
+<li><strong>FR-PO-012:</strong> System shall allow updating line items</li>
+<li><strong>FR-PO-013:</strong> System shall allow deleting line items</li>
+<li><strong>FR-PO-014:</strong> System shall track quantity ordered, unit price, and total for each line item</li>
+<li><strong>FR-PO-015:</strong> System shall track quantity received for each line item</li>
+<li><strong>FR-PO-016:</strong> System shall track line item status (Pending, Partially Received, Received, Rejected)</li>
+<p></ul></p>
+<h4>4.7.4 Purchase Order Workflow</h4>
+<ul>
+<li><strong>FR-PO-017:</strong> System shall support PO submission for approval</li>
+<li><strong>FR-PO-018:</strong> System shall support PO approval workflow based on value thresholds</li>
+<li><strong>FR-PO-019:</strong> System shall support auto-approval for POs below threshold ($5,000)</li>
+<li><strong>FR-PO-020:</strong> System shall require standard approval for POs between $5,000 and $25,000</li>
+<li><strong>FR-PO-021:</strong> System shall require high-value approval for POs above $25,000</li>
+<li><strong>FR-PO-022:</strong> System shall require director approval for POs above $100,000</li>
+<li><strong>FR-PO-023:</strong> System shall support PO rejection with comments</li>
+<li><strong>FR-PO-024:</strong> System shall maintain approval history</li>
+<li><strong>FR-PO-025:</strong> System shall support PO ordering (sending to supplier)</li>
+<li><strong>FR-PO-026:</strong> System shall support PO cancellation</li>
+<p></ol></p>
+<h4>4.7.5 Goods Receipt Note (GRN)</h4>
+<ul>
+<li><strong>FR-PO-027:</strong> System shall allow creating GRN from purchase orders</li>
+<li><strong>FR-PO-028:</strong> System shall track GRN status (Received, Inspected, Accepted, Rejected)</li>
+<li><strong>FR-PO-029:</strong> System shall allow viewing all GRNs for a PO</li>
+<li><strong>FR-PO-030:</strong> System shall support GRN inspection workflow</li>
+<li><strong>FR-PO-031:</strong> System shall support GRN acceptance/rejection</li>
+<li><strong>FR-PO-032:</strong> System shall track quantity received vs. quantity ordered</li>
+<p></ul></p>
+<h3>4.8 Certification Management Module</h3>
+<h4>4.8.1 Certification CRUD Operations</h4>
+<ul>
+<li><strong>FR-CERT-001:</strong> System shall allow creating certifications</li>
+<li><strong>FR-CERT-002:</strong> System shall allow listing certifications with pagination</li>
+<li><strong>FR-CERT-003:</strong> System shall allow viewing certification details by ID</li>
+<li><strong>FR-CERT-004:</strong> System shall allow updating certification information</li>
+<li><strong>FR-CERT-005:</strong> System shall allow deleting certifications</li>
+<p></ul></p>
+<h4>4.8.2 Certification Attributes</h4>
+<ul>
+<li><strong>FR-CERT-006:</strong> System shall track certification name, type, and issuing authority</li>
+<li><strong>FR-CERT-007:</strong> System shall track certification number and expiry date</li>
+<li><strong>FR-CERT-008:</strong> System shall track certification status (Active, Expired, Revoked)</li>
+<li><strong>FR-CERT-009:</strong> System shall link certifications to materials</li>
+<p></ul></p>
+<h4>4.8.3 Material Certifications</h4>
+<ul>
+<li><strong>FR-CERT-010:</strong> System shall allow linking certifications to materials</li>
+<li><strong>FR-CERT-011:</strong> System shall allow updating material-certification links</li>
+<li><strong>FR-CERT-012:</strong> System shall allow removing certification links from materials</li>
+<p></ul></p>
+<h3>4.9 Barcode Management Module</h3>
+<h4>4.9.1 Barcode Generation</h4>
+<ul>
+<li><strong>FR-BAR-001:</strong> System shall generate barcodes (Code128, QR Code) for materials</li>
+<li><strong>FR-BAR-002:</strong> System shall support barcode templates with configurable patterns</li>
+<li><strong>FR-BAR-003:</strong> System shall generate barcodes from purchase orders</li>
+<li><strong>FR-BAR-004:</strong> System shall generate WIP (Work in Progress) barcodes</li>
+<li><strong>FR-BAR-005:</strong> System shall generate finished goods barcodes</li>
+<li><strong>FR-BAR-006:</strong> System shall support barcode image generation (PNG)</li>
+<li><strong>FR-BAR-007:</strong> System shall support QR code image generation</li>
+<p></ul></p>
+<h4>4.9.2 Barcode Scanning</h4>
+<ul>
+<li><strong>FR-BAR-008:</strong> System shall process barcode scans</li>
+<li><strong>FR-BAR-009:</strong> System shall support scan-to-receive functionality</li>
+<li><strong>FR-BAR-010:</strong> System shall validate barcode format</li>
+<li><strong>FR-BAR-011:</strong> System shall maintain scan history</li>
+<li><strong>FR-BAR-012:</strong> System shall track scan location and timestamp</li>
+<p></ul></p>
+<h4>4.9.3 Barcode Lookup</h4>
+<ul>
+<li><strong>FR-BAR-013:</strong> System shall allow looking up materials by barcode value</li>
+<li><strong>FR-BAR-014:</strong> System shall provide barcode traceability chain</li>
+<li><strong>FR-BAR-015:</strong> System shall display barcode scan history</li>
+<p></ul></p>
+<h3>4.10 Workflow Management Module</h3>
+<h4>4.10.1 Workflow Templates</h4>
+<ul>
+<li><strong>FR-WF-001:</strong> System shall support configurable workflow templates</li>
+<li><strong>FR-WF-002:</strong> System shall allow creating workflow templates</li>
+<li><strong>FR-WF-003:</strong> System shall allow listing workflow templates</li>
+<li><strong>FR-WF-004:</strong> System shall support multi-step approval workflows</li>
+<p></ul></p>
+<h4>4.10.2 Workflow Instances</h4>
+<ul>
+<li><strong>FR-WF-005:</strong> System shall create workflow instances for POs and material movements</li>
+<li><strong>FR-WF-006:</strong> System shall track workflow status and current step</li>
+<li><strong>FR-WF-007:</strong> System shall allow approving workflow steps</li>
+<li><strong>FR-WF-008:</strong> System shall allow rejecting workflows</li>
+<li><strong>FR-WF-009:</strong> System shall maintain workflow history</li>
+<p></ul></p>
+<h4>4.10.3 Pending Approvals</h4>
+<ul>
+<li><strong>FR-WF-010:</strong> System shall provide endpoint to list pending approvals</li>
+<li><strong>FR-WF-011:</strong> System shall filter approvals by user role</li>
+<p></ul></p>
+<h3>4.11 Dashboard & Analytics Module</h3>
+<h4>4.11.1 Dashboard Overview</h4>
+<ul>
+<li><strong>FR-DASH-001:</strong> System shall provide comprehensive dashboard overview</li>
+<li><strong>FR-DASH-002:</strong> System shall display PO status summary</li>
+<li><strong>FR-DASH-003:</strong> System shall display material status summary</li>
+<li><strong>FR-DASH-004:</strong> System shall display inventory status</li>
+<li><strong>FR-DASH-005:</strong> System shall display active alerts</li>
+<p></ul></p>
+<h4>4.11.2 Analytics</h4>
+<ul>
+<li><strong>FR-DASH-006:</strong> System shall provide PO vs. received comparison</li>
+<li><strong>FR-DASH-007:</strong> System shall provide delivery performance analytics</li>
+<li><strong>FR-DASH-008:</strong> System shall provide PO-to-production lead time analysis</li>
+<li><strong>FR-DASH-009:</strong> System shall provide supplier performance metrics</li>
+<li><strong>FR-DASH-010:</strong> System shall provide project-wise consumption analysis</li>
+<li><strong>FR-DASH-011:</strong> System shall provide material movement history</li>
+<li><strong>FR-DASH-012:</strong> System shall provide stock analysis (fast-moving, low stock)</li>
+<p></ul></p>
+<h3>4.12 Reporting Module</h3>
+<h4>4.12.1 Report Generation</h4>
+<ul>
+<li><strong>FR-REP-001:</strong> System shall generate PO reports in PDF, Excel, and CSV formats</li>
+<li><strong>FR-REP-002:</strong> System shall generate material reports</li>
+<li><strong>FR-REP-003:</strong> System shall generate inventory reports</li>
+<li><strong>FR-REP-004:</strong> System shall generate supplier performance reports</li>
+<li><strong>FR-REP-005:</strong> System shall generate project consumption reports</li>
+<li><strong>FR-REP-006:</strong> System shall support date range filtering for reports</li>
+<li><strong>FR-REP-007:</strong> System shall provide report download endpoints</li>
+<p></ul></p>
+<h4>4.12.2 Quick Exports</h4>
+<ul>
+<li><strong>FR-REP-008:</strong> System shall provide quick CSV export for POs</li>
+<li><strong>FR-REP-009:</strong> System shall provide quick CSV export for inventory</li>
+<li><strong>FR-REP-010:</strong> System shall provide quick CSV export for materials</li>
+<p></ul></p>
+<h3>4.13 Notification Module</h3>
+<h4>4.13.1 Real-time Notifications</h4>
+<ul>
+<li><strong>FR-NOT-001:</strong> System shall send real-time notifications via WebSocket</li>
+<li><strong>FR-NOT-002:</strong> System shall notify on PO status changes</li>
+<li><strong>FR-NOT-003:</strong> System shall notify on material status changes</li>
+<li><strong>FR-NOT-004:</strong> System shall notify on new alerts</li>
+<li><strong>FR-NOT-005:</strong> System shall notify on inventory updates</li>
+<li><strong>FR-NOT-006:</strong> System shall notify on approval requirements</li>
+<li><strong>FR-NOT-007:</strong> System shall notify on GRN receipt</li>
+<li><strong>FR-NOT-008:</strong> System shall notify on inspection completion</li>
+<p></ul></p>
+<h4>4.13.2 Alert Types</h4>
+<ul>
+<li><strong>FR-NOT-009:</strong> System shall generate PO pending approval alerts</li>
+<li><strong>FR-NOT-010:</strong> System shall generate quantity mismatch alerts</li>
+<li><strong>FR-NOT-011:</strong> System shall generate delayed delivery alerts</li>
+<li><strong>FR-NOT-012:</strong> System shall generate fast-moving material alerts</li>
+<li><strong>FR-NOT-013:</strong> System shall generate low stock alerts</li>
+<li><strong>FR-NOT-014:</strong> System shall generate inspection pending alerts</li>
+<p></ul></p>
+<hr>
+<h2>5. USER ROLES AND PERMISSIONS</h2>
+<h3>5.1 Role-Based Access Control (RBAC)</h3>
+<p>The system implements role-based access control with the following roles:</p>
+<h3>5.2 Director Role</h3>
+<ul>
+<li><strong>Full system access</strong></li>
+<li><strong>High-value PO approvals</strong> (above $100,000)</li>
+<li><strong>User management</strong> (create, update, delete users)</li>
+<li><strong>View all login history</strong></li>
+<li><strong>All permissions of other roles</strong></li>
+<p></ul></p>
+<h3>5.3 Head of Operations Role</h3>
+<ul>
+<li><strong>Operations approvals</strong></li>
+<li><strong>Workflow management</strong></li>
+<li><strong>PO approvals</strong> (standard and high-value)</li>
+<li><strong>Material and inventory management</strong></li>
+<li><strong>View operational dashboards</strong></li>
+<p></ul></p>
+<h3>5.4 Purchase Role</h3>
+<ul>
+<li><strong>PO creation and management</strong></li>
+<li><strong>Supplier management</strong></li>
+<li><strong>Procurement operations</strong></li>
+<li><strong>View purchase-related reports</strong></li>
+<p></ul></p>
+<h3>5.5 Store Role</h3>
+<ul>
+<li><strong>Material receipt</strong></li>
+<li><strong>Inventory management</strong></li>
+<li><strong>GRN processing</strong></li>
+<li><strong>Barcode scanning</strong></li>
+<li><strong>Material instance management</strong></li>
+<p></ul></p>
+<h3>5.6 QA Role</h3>
+<ul>
+<li><strong>Quality inspections</strong></li>
+<li><strong>Material certifications</strong></li>
+<li><strong>GRN inspection and approval</strong></li>
+<li><strong>Certification management</strong></li>
+<p></ul></p>
+<h3>5.7 Engineer Role</h3>
+<ul>
+<li><strong>Material management</strong> (create, update, delete)</li>
+<li><strong>Parts management</strong> (create, update, delete)</li>
+<li><strong>BOM creation and management</strong></li>
+<li><strong>Technical specifications management</strong></li>
+<li><strong>Certification management</strong></li>
+<p></ul></p>
+<h3>5.8 Technician Role</h3>
+<ul>
+<li><strong>Inventory operations</strong></li>
+<li><strong>Material handling</strong></li>
+<li><strong>Barcode scanning</strong></li>
+<li><strong>View inventory and materials</strong></li>
+<p></ul></p>
+<h3>5.9 Viewer Role</h3>
+<ul>
+<li><strong>Read-only access</strong> to all resources</li>
+<li><strong>View dashboards and reports</strong></li>
+<li><strong>No create, update, or delete permissions</strong></li>
+<p></ul></p>
+<h3>5.10 Permission Matrix</h3>
+<table>
+<tr>
+<td>Feature</td>
+<td>Director</td>
+<td>Head of Ops</td>
+<td>Purchase</td>
+<td>Store</td>
+<td>QA</td>
+<td>Engineer</td>
+<td>Technician</td>
+<td>Viewer</td>
+<p></tr></p>
+<tr>
+<th>User Management</th>
+<th>✓</th>
+<th>✗</th>
+<th>✗</th>
+<th>✗</th>
+<th>✗</th>
+<th>✗</th>
+<th>✗</th>
+<th>✗</th>
+<p></tr></p>
+<tr>
+<td>Material CRUD</td>
+<td>✓</td>
+<td>✓</td>
+<td>✗</td>
+<td>✗</td>
+<td>✗</td>
+<td>✓</td>
+<td>✗</td>
+<td>View</td>
+<p></tr></p>
+<tr>
+<td>Parts CRUD</td>
+<td>✓</td>
+<td>✓</td>
+<td>✗</td>
+<td>✗</td>
+<td>✗</td>
+<td>✓</td>
+<td>✗</td>
+<td>View</td>
+<p></tr></p>
+<tr>
+<td>Supplier CRUD</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✗</td>
+<td>✗</td>
+<td>✗</td>
+<td>✗</td>
+<td>View</td>
+<p></tr></p>
+<tr>
+<td>PO Creation</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✗</td>
+<td>✗</td>
+<td>✗</td>
+<td>✗</td>
+<td>View</td>
+<p></tr></p>
+<tr>
+<td>PO Approval</td>
+<td>✓</td>
+<td>✓</td>
+<td>✗</td>
+<td>✗</td>
+<td>✗</td>
+<td>✗</td>
+<td>✗</td>
+<td>View</td>
+<p></tr></p>
+<tr>
+<td>GRN Processing</td>
+<td>✓</td>
+<td>✓</td>
+<td>✗</td>
+<td>✓</td>
+<td>✓</td>
+<td>✗</td>
+<td>✗</td>
+<td>View</td>
+<p></tr></p>
+<tr>
+<td>Inventory Management</td>
+<td>✓</td>
+<td>✓</td>
+<td>✗</td>
+<td>✓</td>
+<td>✗</td>
+<td>✗</td>
+<td>✓</td>
+<td>View</td>
+<p></tr></p>
+<tr>
+<td>Certification Management</td>
+<td>✓</td>
+<td>✓</td>
+<td>✗</td>
+<td>✗</td>
+<td>✓</td>
+<td>✓</td>
+<td>✗</td>
+<td>View</td>
+<p></tr></p>
+<tr>
+<td>Barcode Operations</td>
+<td>✓</td>
+<td>✓</td>
+<td>✗</td>
+<td>✓</td>
+<td>✗</td>
+<td>✗</td>
+<td>✓</td>
+<td>View</td>
+<p></tr></p>
+<tr>
+<td>Reports</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<p></tr></p>
+<p></table></p>
+<hr>
+<h2>6. API SPECIFICATIONS</h2>
+<h3>6.1 API Base URL</h3>
+<ul>
+<li><strong>Base URL:</strong> <code>http://localhost:5055/api/v1</code></li>
+<li><strong>API Version:</strong> v1</li>
+<li><strong>API Style:</strong> RESTful</li>
+<p></ul></p>
+<h3>6.2 Authentication</h3>
+<ul>
+<li><strong>Method:</strong> JWT (JSON Web Tokens)</li>
+<li><strong>Token Type:</strong> Bearer</li>
+<li><strong>Access Token Expiry:</strong> 90 minutes</li>
+<li><strong>Refresh Token Expiry:</strong> 7 days</li>
+<p></ul></p>
+<h3>6.3 API Endpoints Summary</h3>
+<h4>6.3.1 Authentication Endpoints</h4>
+<ul>
+<li><code>POST /api/v1/auth/login</code> - User login</li>
+<li><code>POST /api/v1/auth/refresh</code> - Refresh access token</li>
+<li><code>POST /api/v1/auth/register</code> - Register new user (admin only)</li>
+<li><code>GET /api/v1/auth/me</code> - Get current user info</li>
+<li><code>POST /api/v1/auth/change-password</code> - Change password</li>
+<li><code>POST /api/v1/auth/logout</code> - Logout</li>
+<li><code>GET /api/v1/auth/validate</code> - Validate token</li>
+<li><code>GET /api/v1/auth/permissions</code> - Get user permissions</li>
+<li><code>GET /api/v1/auth/login-history</code> - Get login history</li>
+<li><code>GET /api/v1/auth/all-login-history</code> - Get all users' login history (director only)</li>
+<p></ol></p>
+<h4>6.3.2 User Management Endpoints</h4>
+<ul>
+<li><code>GET /api/v1/users</code> - List users (paginated)</li>
+<li><code>GET /api/v1/users/{id}</code> - Get user by ID</li>
+<li><code>PUT /api/v1/users/{id}</code> - Update user</li>
+<li><code>DELETE /api/v1/users/{id}</code> - Delete user</li>
+<p></ul></p>
+<h4>6.3.3 Material Management Endpoints</h4>
+<ul>
+<li><code>GET /api/v1/materials</code> - List materials (with filtering)</li>
+<li><code>POST /api/v1/materials</code> - Create material</li>
+<li><code>GET /api/v1/materials/{id}</code> - Get material</li>
+<li><code>PUT /api/v1/materials/{id}</code> - Update material</li>
+<li><code>DELETE /api/v1/materials/{id}</code> - Delete material</li>
+<li><code>GET /api/v1/materials/categories</code> - List categories</li>
+<li><code>POST /api/v1/materials/categories</code> - Create category</li>
+<li><code>PUT /api/v1/materials/categories/{id}</code> - Update category</li>
+<p></ul></p>
+<h4>6.3.4 Parts Management Endpoints</h4>
+<ul>
+<li><code>GET /api/v1/parts</code> - List parts</li>
+<li><code>POST /api/v1/parts</code> - Create part</li>
+<li><code>GET /api/v1/parts/{id}</code> - Get part</li>
+<li><code>PUT /api/v1/parts/{id}</code> - Update part</li>
+<li><code>DELETE /api/v1/parts/{id}</code> - Delete part</li>
+<li><code>GET /api/v1/parts/{id}/materials</code> - List part materials (BOM)</li>
+<li><code>POST /api/v1/parts/{id}/materials</code> - Add material to part</li>
+<li><code>PUT /api/v1/parts/{id}/materials/{link_id}</code> - Update BOM entry</li>
+<li><code>DELETE /api/v1/parts/{id}/materials/{link_id}</code> - Remove material from BOM</li>
+<p></ul></p>
+<h4>6.3.5 Supplier Management Endpoints</h4>
+<ul>
+<li><code>GET /api/v1/suppliers</code> - List suppliers</li>
+<li><code>POST /api/v1/suppliers</code> - Create supplier</li>
+<li><code>GET /api/v1/suppliers/{id}</code> - Get supplier</li>
+<li><code>PUT /api/v1/suppliers/{id}</code> - Update supplier</li>
+<li><code>DELETE /api/v1/suppliers/{id}</code> - Delete supplier</li>
+<p></ul></p>
+<h4>6.3.6 Inventory Management Endpoints</h4>
+<ul>
+<li><code>GET /api/v1/inventory</code> - List inventory items</li>
+<li><code>POST /api/v1/inventory</code> - Create inventory record</li>
+<li><code>GET /api/v1/inventory/{id}</code> - Get inventory item</li>
+<li><code>PUT /api/v1/inventory/{id}</code> - Update inventory</li>
+<li><code>POST /api/v1/inventory/{id}/transactions</code> - Create transaction</li>
+<li><code>GET /api/v1/inventory/{id}/transactions</code> - Get transaction history</li>
+<p></ul></p>
+<h4>6.3.7 Material Instance Endpoints</h4>
+<ul>
+<li><code>GET /api/v1/material-instances</code> - List material instances</li>
+<li><code>POST /api/v1/material-instances</code> - Create material instance</li>
+<li><code>GET /api/v1/material-instances/{id}</code> - Get material instance</li>
+<li><code>PUT /api/v1/material-instances/{id}</code> - Update material instance</li>
+<li><code>DELETE /api/v1/material-instances/{id}</code> - Delete material instance</li>
+<li><code>POST /api/v1/material-instances/receive-from-grn</code> - Receive from GRN</li>
+<li><code>POST /api/v1/material-instances/bulk-receive</code> - Bulk receive</li>
+<li><code>POST /api/v1/material-instances/{id}/change-status</code> - Change status</li>
+<li><code>POST /api/v1/material-instances/{id}/inspect</code> - Inspect material</li>
+<li><code>GET /api/v1/material-instances/{id}/history</code> - Get status history</li>
+<li><code>POST /api/v1/material-instances/allocations</code> - Create allocation</li>
+<li><code>GET /api/v1/material-instances/allocations</code> - List allocations</li>
+<li><code>POST /api/v1/material-instances/allocations/{id}/issue</code> - Issue allocation</li>
+<li><code>POST /api/v1/material-instances/allocations/{id}/return</code> - Return allocation</li>
+<li><code>GET /api/v1/material-instances/summary/by-status</code> - Status summary</li>
+<li><code>GET /api/v1/material-instances/summary/project/{id}</code> - Project summary</li>
+<p></ol></p>
+<h4>6.3.8 Purchase Order Endpoints</h4>
+<ul>
+<li><code>GET /api/v1/purchase-orders</code> - List purchase orders</li>
+<li><code>POST /api/v1/purchase-orders</code> - Create purchase order</li>
+<li><code>GET /api/v1/purchase-orders/{id}</code> - Get purchase order</li>
+<li><code>PUT /api/v1/purchase-orders/{id}</code> - Update purchase order</li>
+<li><code>DELETE /api/v1/purchase-orders/{id}</code> - Delete purchase order</li>
+<li><code>POST /api/v1/purchase-orders/{id}/items</code> - Add line item</li>
+<li><code>PUT /api/v1/purchase-orders/{id}/items/{item_id}</code> - Update line item</li>
+<li><code>DELETE /api/v1/purchase-orders/{id}/items/{item_id}</code> - Delete line item</li>
+<li><code>POST /api/v1/purchase-orders/{id}/submit</code> - Submit for approval</li>
+<li><code>POST /api/v1/purchase-orders/{id}/approve</code> - Approve PO</li>
+<li><code>POST /api/v1/purchase-orders/{id}/order</code> - Send to supplier</li>
+<li><code>POST /api/v1/purchase-orders/{id}/cancel</code> - Cancel PO</li>
+<li><code>GET /api/v1/purchase-orders/{id}/history</code> - Get approval history</li>
+<li><code>POST /api/v1/purchase-orders/{id}/receive</code> - Create GRN</li>
+<li><code>GET /api/v1/purchase-orders/{id}/receipts</code> - List GRNs</li>
+<li><code>GET /api/v1/purchase-orders/grn/{grn_id}</code> - Get GRN</li>
+<li><code>POST /api/v1/purchase-orders/grn/{grn_id}/inspect</code> - Inspect GRN</li>
+<li><code>POST /api/v1/purchase-orders/grn/{grn_id}/accept</code> - Accept GRN</li>
+<p></ol></p>
+<h4>6.3.9 Certification Endpoints</h4>
+<ul>
+<li><code>GET /api/v1/certifications</code> - List certifications</li>
+<li><code>POST /api/v1/certifications</code> - Create certification</li>
+<li><code>GET /api/v1/certifications/{id}</code> - Get certification</li>
+<li><code>PUT /api/v1/certifications/{id}</code> - Update certification</li>
+<li><code>DELETE /api/v1/certifications/{id}</code> - Delete certification</li>
+<li><code>POST /api/v1/certifications/materials</code> - Link certification to material</li>
+<li><code>PUT /api/v1/certifications/materials/{link_id}</code> - Update link</li>
+<li><code>DELETE /api/v1/certifications/materials/{link_id}</code> - Remove link</li>
+<p></ul></p>
+<h4>6.3.10 Barcode Endpoints</h4>
+<ul>
+<li><code>GET /api/v1/barcodes</code> - List barcodes</li>
+<li><code>POST /api/v1/barcodes</code> - Create barcode</li>
+<li><code>GET /api/v1/barcodes/{id}</code> - Get barcode details</li>
+<li><code>GET /api/v1/barcodes/lookup/{value}</code> - Lookup by barcode value</li>
+<li><code>PUT /api/v1/barcodes/{id}</code> - Update barcode</li>
+<li><code>DELETE /api/v1/barcodes/{id}</code> - Delete barcode</li>
+<li><code>POST /api/v1/barcodes/generate</code> - Generate barcode</li>
+<li><code>POST /api/v1/barcodes/generate-from-po</code> - Generate from PO</li>
+<li><code>POST /api/v1/barcodes/scan</code> - Process scan</li>
+<li><code>POST /api/v1/barcodes/scan-to-receive</code> - Scan to receive</li>
+<li><code>POST /api/v1/barcodes/validate</code> - Validate barcode</li>
+<li><code>POST /api/v1/barcodes/create-wip</code> - Create WIP barcode</li>
+<li><code>POST /api/v1/barcodes/create-finished-goods</code> - Create finished goods barcode</li>
+<li><code>GET /api/v1/barcodes/{id}/traceability</code> - Get traceability chain</li>
+<li><code>GET /api/v1/barcodes/{id}/scan-history</code> - Get scan history</li>
+<li><code>GET /api/v1/barcodes/{id}/image</code> - Get barcode image</li>
+<li><code>GET /api/v1/barcodes/{id}/qr</code> - Get QR code image</li>
+<li><code>GET /api/v1/barcodes/summary/by-stage</code> - Summary by stage</li>
+<li><code>GET /api/v1/barcodes/summary/by-po/{po_id}</code> - Summary by PO</li>
+<p></ol></p>
+<h4>6.3.11 Workflow Endpoints</h4>
+<ul>
+<li><code>GET /api/v1/workflows/templates</code> - List workflow templates</li>
+<li><code>POST /api/v1/workflows/templates</code> - Create workflow template</li>
+<li><code>GET /api/v1/workflows/pending</code> - Get pending approvals</li>
+<p></ul></p>
+<h4>6.3.12 Dashboard Endpoints</h4>
+<ul>
+<li><code>GET /api/v1/dashboard/overview</code> - Complete dashboard overview</li>
+<li><code>GET /api/v1/dashboard/po-summary</code> - PO status summary</li>
+<li><code>GET /api/v1/dashboard/material-summary</code> - Material status summary</li>
+<li><code>GET /api/v1/dashboard/inventory-summary</code> - Inventory status</li>
+<li><code>GET /api/v1/dashboard/po-vs-received</code> - PO vs received comparison</li>
+<li><code>GET /api/v1/dashboard/delivery-analytics</code> - Delivery performance</li>
+<li><code>GET /api/v1/dashboard/lead-time</code> - PO-to-production lead time</li>
+<li><code>GET /api/v1/dashboard/supplier-performance</code> - Supplier analytics</li>
+<li><code>GET /api/v1/dashboard/project-consumption</code> - Project-wise consumption</li>
+<li><code>GET /api/v1/dashboard/material-movement</code> - Material movement history</li>
+<li><code>GET /api/v1/dashboard/stock-analysis</code> - Stock analysis</li>
+<li><code>GET /api/v1/dashboard/alerts</code> - Active alerts</li>
+<p></ol></p>
+<h4>6.3.13 Reporting Endpoints</h4>
+<ul>
+<li><code>POST /api/v1/reports/po</code> - Generate PO report</li>
+<li><code>POST /api/v1/reports/materials</code> - Generate material report</li>
+<li><code>POST /api/v1/reports/inventory</code> - Generate inventory report</li>
+<li><code>POST /api/v1/reports/suppliers</code> - Generate supplier report</li>
+<li><code>POST /api/v1/reports/project-consumption</code> - Generate project consumption report</li>
+<li><code>GET /api/v1/reports/download/{filename}</code> - Download report</li>
+<li><code>GET /api/v1/reports/export/po-csv</code> - Quick PO CSV export</li>
+<li><code>GET /api/v1/reports/export/inventory-csv</code> - Quick inventory CSV export</li>
+<li><code>GET /api/v1/reports/export/materials-csv</code> - Quick materials CSV export</li>
+<p></ul></p>
+<h4>6.3.14 WebSocket Endpoint</h4>
+<ul>
+<li><code>WS /api/v1/ws?token={jwt}</code> - WebSocket connection for real-time updates</li>
+<p></ul></p>
+<h3>6.4 API Response Formats</h3>
+<h4>6.4.1 Success Response</h4>
+<pre><code>{
+<p>"items": [...],</p>
+<p>"total": 100,</p>
+<p>"page": 1,</p>
+<p>"page_size": 20,</p>
+<p>"total_pages": 5</p>
+<p>}</p>
+<p></code></pre></p>
+<h4>6.4.2 Error Response</h4>
+<pre><code>{
+<p>"detail": "Error message"</p>
+<p>}</p>
+<p></code></pre></p>
+<h3>6.5 Pagination</h3>
+<ul>
+<li><strong>Default Page Size:</strong> 20</li>
+<li><strong>Maximum Page Size:</strong> 100</li>
+<li><strong>Query Parameters:</strong> <code>page</code>, <code>page_size</code></li>
+<p></ul></p>
+<hr>
+<h2>7. TECHNICAL ARCHITECTURE</h2>
+<h3>7.1 Technology Stack</h3>
+<h4>7.1.1 Backend</h4>
+<ul>
+<li><strong>Framework:</strong> FastAPI (Python 3.10+)</li>
+<li><strong>Database:</strong> PostgreSQL 13+</li>
+<li><strong>ORM:</strong> SQLAlchemy (async support)</li>
+<li><strong>Migrations:</strong> Alembic</li>
+<li><strong>Authentication:</strong> JWT (PyJWT)</li>
+<li><strong>Password Hashing:</strong> bcrypt</li>
+<p></ul></p>
+<h4>7.1.2 API Documentation</h4>
+<ul>
+<li><strong>Swagger UI:</strong> Available at <code>/api/v1/docs</code></li>
+<li><strong>ReDoc:</strong> Available at <code>/api/v1/redoc</code></li>
+<li><strong>OpenAPI Schema:</strong> Available at <code>/api/v1/openapi.json</code></li>
+<p></ul></p>
+<h4>7.1.3 Real-time Communication</h4>
+<ul>
+<li><strong>WebSocket:</strong> Native FastAPI WebSocket support</li>
+<p></ul></p>
+<h4>7.1.4 Reporting</h4>
+<ul>
+<li><strong>PDF Generation:</strong> ReportLab or similar</li>
+<li><strong>Excel Generation:</strong> openpyxl or similar</li>
+<li><strong>CSV Export:</strong> Built-in Python CSV module</li>
+<p></ul></p>
+<h3>7.2 Database Schema</h3>
+<h4>7.2.1 Core Tables</h4>
+<ul>
+<li><code>users</code> - User accounts and authentication</li>
+<li><code>materials</code> - Material master data</li>
+<li><code>material_categories</code> - Material categorization</li>
+<li><code>parts</code> - Part master data</li>
+<li><code>part_materials</code> - Bill of Materials (BOM)</li>
+<li><code>suppliers</code> - Supplier master data</li>
+<li><code>inventory</code> - Inventory records</li>
+<li><code>inventory_transactions</code> - Transaction history</li>
+<li><code>material_instances</code> - Individual material instances</li>
+<li><code>material_allocations</code> - Material allocations</li>
+<li><code>purchase_orders</code> - Purchase order headers</li>
+<li><code>po_line_items</code> - Purchase order line items</li>
+<li><code>goods_receipt_notes</code> - GRN records</li>
+<li><code>certifications</code> - Certification master data</li>
+<li><code>material_certifications</code> - Material-certification links</li>
+<li><code>barcode_labels</code> - Barcode records</li>
+<li><code>barcode_scan_logs</code> - Scan history</li>
+<li><code>workflow_templates</code> - Workflow definitions</li>
+<li><code>workflow_instances</code> - Active workflows</li>
+<li><code>login_history</code> - Security audit log</li>
+<li><code>audit_logs</code> - System audit trail</li>
+<p></ol></p>
+<h3>7.3 Security</h3>
+<h4>7.3.1 Authentication</h4>
+<ul>
+<li>JWT-based authentication</li>
+<li>Password hashing using bcrypt</li>
+<li>Token expiry and refresh mechanism</li>
+<li>Login attempt logging</li>
+<p></ul></p>
+<h4>7.3.2 Authorization</h4>
+<ul>
+<li>Role-based access control (RBAC)</li>
+<li>Endpoint-level permission checks</li>
+<li>Resource-level access control</li>
+<p></ul></p>
+<h4>7.3.3 Data Security</h4>
+<ul>
+<li>SQL injection prevention (ORM)</li>
+<li>XSS prevention (input validation)</li>
+<li>CORS configuration</li>
+<li>Secure password storage</li>
+<p></ul></p>
+<h3>7.4 Performance Requirements</h3>
+<ul>
+<li><strong>API Response Time:</strong> < 500ms for standard queries</li>
+<li><strong>Database Queries:</strong> Optimized with indexes</li>
+<li><strong>Pagination:</strong> Implemented for all list endpoints</li>
+<li><strong>Caching:</strong> Can be implemented for frequently accessed data</li>
+<p></ul></p>
+<hr>
+<h2>8. NON-FUNCTIONAL REQUIREMENTS</h2>
+<h3>8.1 Performance Requirements</h3>
+<ul>
+<li><strong>NFR-001:</strong> System shall respond to API requests within 500ms for 95% of requests</li>
+<li><strong>NFR-002:</strong> System shall support concurrent users (minimum 50)</li>
+<li><strong>NFR-003:</strong> System shall support pagination for all list endpoints</li>
+<li><strong>NFR-004:</strong> System shall optimize database queries with proper indexing</li>
+<p></ul></p>
+<h3>8.2 Scalability Requirements</h3>
+<ul>
+<li><strong>NFR-005:</strong> System architecture shall support horizontal scaling</li>
+<li><strong>NFR-006:</strong> Database shall support large datasets (millions of records)</li>
+<li><strong>NFR-007:</strong> System shall support async operations where applicable</li>
+<p></ul></p>
+<h3>8.3 Security Requirements</h3>
+<ul>
+<li><strong>NFR-008:</strong> System shall encrypt passwords using bcrypt</li>
+<li><strong>NFR-009:</strong> System shall use HTTPS in production</li>
+<li><strong>NFR-010:</strong> System shall log all authentication attempts</li>
+<li><strong>NFR-011:</strong> System shall implement CORS policies</li>
+<li><strong>NFR-012:</strong> System shall validate all user inputs</li>
+<p></ul></p>
+<h3>8.4 Reliability Requirements</h3>
+<ul>
+<li><strong>NFR-013:</strong> System shall have 99.5% uptime</li>
+<li><strong>NFR-014:</strong> System shall handle errors gracefully</li>
+<li><strong>NFR-015:</strong> System shall provide meaningful error messages</li>
+<li><strong>NFR-016:</strong> System shall maintain data integrity with transactions</li>
+<p></ul></p>
+<h3>8.5 Usability Requirements</h3>
+<ul>
+<li><strong>NFR-017:</strong> API shall provide comprehensive documentation (Swagger/ReDoc)</li>
+<li><strong>NFR-018:</strong> API responses shall be in JSON format</li>
+<li><strong>NFR-019:</strong> API shall provide consistent error response format</li>
+<li><strong>NFR-020:</strong> System shall support internationalization (future)</li>
+<p></ul></p>
+<h3>8.6 Maintainability Requirements</h3>
+<ul>
+<li><strong>NFR-021:</strong> Code shall follow Python PEP 8 standards</li>
+<li><strong>NFR-022:</strong> System shall use database migrations (Alembic)</li>
+<li><strong>NFR-023:</strong> System shall have comprehensive logging</li>
+<li><strong>NFR-024:</strong> System shall have unit and integration tests</li>
+<p></ul></p>
+<h3>8.7 Compatibility Requirements</h3>
+<ul>
+<li><strong>NFR-025:</strong> System shall support Python 3.10+</li>
+<li><strong>NFR-026:</strong> System shall support PostgreSQL 13+</li>
+<li><strong>NFR-027:</strong> API shall support standard HTTP methods (GET, POST, PUT, DELETE)</li>
+<li><strong>NFR-028:</strong> API shall support JSON request/response format</li>
+<p></ul></p>
+<hr>
+<h2>9. DATA MODELS</h2>
+<h3>9.1 User Model</h3>
+<ul>
+<li><code>id</code> - Primary key</li>
+<li><code>email</code> - Unique email address</li>
+<li><code>hashed_password</code> - Encrypted password</li>
+<li><code>full_name</code> - User's full name</li>
+<li><code>role</code> - User role (enum)</li>
+<li><code>department</code> - Department (enum)</li>
+<li><code>is_active</code> - Active status</li>
+<li><code>is_superuser</code> - Superuser flag</li>
+<li><code>last_login</code> - Last login timestamp</li>
+<li><code>created_at</code> - Creation timestamp</li>
+<li><code>updated_at</code> - Update timestamp</li>
+<p></ol></p>
+<h3>9.2 Material Model</h3>
+<ul>
+<li><code>id</code> - Primary key</li>
+<li><code>item_number</code> - Unique item number</li>
+<li><code>title</code> - Material title</li>
+<li><code>specification</code> - Material specification</li>
+<li><code>heat_number</code> - Heat number</li>
+<li><code>batch_number</code> - Batch number</li>
+<li><code>quantity</code> - Quantity</li>
+<li><code>unit_of_measure</code> - Unit of measure</li>
+<li><code>min_stock_level</code> - Minimum stock level</li>
+<li><code>max_stock_level</code> - Maximum stock level</li>
+<li><code>material_type</code> - Type (Raw, WIP, Finished)</li>
+<li><code>status</code> - Status (Active, Inactive, Obsolete)</li>
+<li><code>category_id</code> - Category reference</li>
+<li><code>supplier_id</code> - Supplier reference</li>
+<li><code>po_id</code> - Purchase order reference</li>
+<li><code>project_id</code> - Project reference</li>
+<li><code>created_at</code> - Creation timestamp</li>
+<li><code>updated_at</code> - Update timestamp</li>
+<p></ol></p>
+<h3>9.3 Purchase Order Model</h3>
+<ul>
+<li><code>id</code> - Primary key</li>
+<li><code>po_number</code> - Unique PO number</li>
+<li><code>supplier_id</code> - Supplier reference</li>
+<li><code>order_date</code> - Order date</li>
+<li><code>expected_delivery_date</code> - Expected delivery date</li>
+<li><code>status</code> - PO status (enum)</li>
+<li><code>total_value</code> - Total PO value</li>
+<li><code>project_id</code> - Project reference</li>
+<li><code>created_by</code> - Creator user ID</li>
+<li><code>approved_by</code> - Approver user ID</li>
+<li><code>created_at</code> - Creation timestamp</li>
+<li><code>updated_at</code> - Update timestamp</li>
+<p></ol></p>
+<h3>9.4 Inventory Model</h3>
+<ul>
+<li><code>id</code> - Primary key</li>
+<li><code>material_id</code> - Material reference</li>
+<li><code>lot_number</code> - Lot number</li>
+<li><code>batch_number</code> - Batch number</li>
+<li><code>quantity</code> - Available quantity</li>
+<li><code>unit_of_measure</code> - Unit of measure</li>
+<li><code>status</code> - Inventory status (enum)</li>
+<li><code>location</code> - Storage location</li>
+<li><code>expiry_date</code> - Expiry date (if applicable)</li>
+<li><code>created_at</code> - Creation timestamp</li>
+<li><code>updated_at</code> - Update timestamp</li>
+<p></ol></p>
+<hr>
+<h2>10. APPENDICES</h2>
+<h3>10.1 Glossary</h3>
+<table>
+<tr>
+<td>Term</td>
+<td>Definition</td>
+<p></tr></p>
+<tr>
+<th><strong>BOM</strong></th>
+<th>Bill of Materials - List of materials required for a part</th>
+<p></tr></p>
+<tr>
+<td><strong>GRN</strong></td>
+<td>Goods Receipt Note - Document for receiving materials</td>
+<p></tr></p>
+<tr>
+<td><strong>JWT</strong></td>
+<td>JSON Web Token - Authentication token format</td>
+<p></tr></p>
+<tr>
+<td><strong>PO</strong></td>
+<td>Purchase Order - Document for ordering materials</td>
+<p></tr></p>
+<tr>
+<td><strong>RBAC</strong></td>
+<td>Role-Based Access Control - Authorization model</td>
+<p></tr></p>
+<tr>
+<td><strong>WIP</strong></td>
+<td>Work in Progress - Materials in production</td>
+<p></tr></p>
+<tr>
+<td><strong>AS9100</strong></td>
+<td>Aerospace quality management standard</td>
+<p></tr></p>
+<tr>
+<td><strong>NADCAP</strong></td>
+<td>National Aerospace and Defense Contractors Accreditation Program</td>
+<p></tr></p>
+<tr>
+<td><strong>ITAR</strong></td>
+<td>International Traffic in Arms Regulations</td>
+<p></tr></p>
+<p></table></p>
+<h3>10.2 Acronyms</h3>
+<ul>
+<li><strong>API:</strong> Application Programming Interface</li>
+<li><strong>CRUD:</strong> Create, Read, Update, Delete</li>
+<li><strong>CSV:</strong> Comma-Separated Values</li>
+<li><strong>PDF:</strong> Portable Document Format</li>
+<li><strong>REST:</strong> Representational State Transfer</li>
+<li><strong>SQL:</strong> Structured Query Language</li>
+<li><strong>UI:</strong> User Interface</li>
+<li><strong>WS:</strong> WebSocket</li>
+<p></ul></p>
+<h3>10.3 References</h3>
+<ul>
+<li>FastAPI Documentation: https://fastapi.tiangolo.com/</li>
+<li>PostgreSQL Documentation: https://www.postgresql.org/docs/</li>
+<li>JWT Specification: https://jwt.io/</li>
+<li>AS9100 Standard: Aerospace quality management</li>
+<li>NADCAP: Aerospace accreditation program</li>
+<p></ul></p>
+<h3>10.4 Change History</h3>
+<table>
+<tr>
+<td>Version</td>
+<td>Date</td>
+<td>Author</td>
+<td>Description</td>
+<p></tr></p>
+<tr>
+<th>1.0.0</th>
+<th>January 25, 2026</th>
+<th>PickupBiz Software Pvt Ltd</th>
+<th>Initial release</th>
+<p></tr></p>
+<p></table></p>
+<h3>10.5 Approval</h3>
+<table>
+<tr>
+<td>Role</td>
+<td>Name</td>
+<td>Signature</td>
+<td>Date</td>
+<p></tr></p>
+<tr>
+<th><strong>Prepared By</strong></th>
+<th>PickupBiz Software Pvt Ltd</th>
+<p></tr></p>
+<tr>
+<td><strong>Reviewed By</strong></td>
+<p></tr></p>
+<tr>
+<td><strong>Approved By</strong></td>
+<td>ADS Innotech</td>
+<p></tr></p>
+<p></table></p>
+<hr>
+<h2>DOCUMENT END</h2>
+<strong>Prepared By:</strong> PickupBiz Software Pvt Ltd
+<strong>For:</strong> ADS Innotech
+<strong>Version:</strong> 1.0.0
+<strong>Date:</strong> January 25, 2026
+<hr>
+<em>This document is confidential and proprietary to ADS Innotech. Unauthorized distribution is prohibited.</em>
+</body>
+</html>
