@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Functional Requirements Document v1.0.0 - ADS Innotech</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <style>
+        @media print {
+            @page {
+                size: A4;
+                margin: 2cm;
+            }
+            body {
+                font-size: 11pt;
+            }
+            h1, h2 {
+                page-break-after: avoid;
+            }
+            .diagram-container {
+                page-break-inside: avoid;
+            }
+        }
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            font-size: 12pt;
+            line-height: 1.6;
+            color: #333;
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 4px solid #0066cc;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #0066cc;
+            margin: 0;
+            font-size: 24pt;
+        }
+        .header .subtitle {
+            color: #666;
+            font-size: 14pt;
+            margin-top: 10px;
+        }
+        .document-info {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-left: 4px solid #0066cc;
+            margin-bottom: 30px;
+        }
+        .document-info table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .document-info td {
+            padding: 5px 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .document-info td:first-child {
+            font-weight: bold;
+            width: 30%;
+        }
+        h1 {
+            color: #1a1a1a;
+            border-bottom: 3px solid #0066cc;
+            padding-bottom: 10px;
+            margin-top: 40px;
+            page-break-after: avoid;
+        }
+        h2 {
+            color: #0066cc;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 5px;
+            margin-top: 30px;
+            page-break-after: avoid;
+        }
+        h3 {
+            color: #333;
+            margin-top: 20px;
+            font-size: 14pt;
+        }
+        h4 {
+            color: #555;
+            margin-top: 15px;
+            font-size: 12pt;
+        }
+        .diagram-container {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            page-break-inside: avoid;
+        }
+        .diagram-container .mermaid {
+            background-color: white;
+        }
+        .diagram-caption {
+            margin-top: 10px;
+            font-style: italic;
+            color: #666;
+            font-size: 10pt;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 15px 0;
+            page-break-inside: avoid;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #0066cc;
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            border-left: 4px solid #0066cc;
+        }
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 30px;
+        }
+        li {
+            margin: 8px 0;
+        }
+        .highlight-box {
+            background-color: #e8f4f8;
+            border-left: 4px solid #0066cc;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .requirement-box {
+            background-color: #fff9e6;
+            border-left: 4px solid #ff9900;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .requirement-box strong {
+            color: #cc6600;
+        }
+        .approach-box {
+            background-color: #f0f8f0;
+            border-left: 4px solid #00cc66;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .approach-box h4 {
+            color: #006633;
+            margin-top: 0;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #ddd;
+            text-align: center;
+            color: #666;
+            font-size: 10pt;
+        }
+        .toc {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .toc ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .toc li {
+            margin: 8px 0;
+        }
+        .toc a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        .toc a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>FUNCTIONAL REQUIREMENTS DOCUMENT</h1>
+        <div class="subtitle">Aerospace Parts Material Management System</div>
+    </div>
+
+    <div class="document-info">
+        <table>
+            <tr>
+                <td>Document Title</td>
+                <td>Functional Requirements Document - Requirements & Approach</td>
+            </tr>
+            <tr>
+                <td>Version</td>
+                <td>1.0.0</td>
+            </tr>
+            <tr>
+                <td>Date</td>
+                <td>January 25, 2026</td>
+            </tr>
+            <tr>
+                <td>Prepared By</td>
+                <td>PickupBiz Software Pvt Ltd</td>
+            </tr>
+            <tr>
+                <td>Prepared For</td>
+                <td>ADS Innotech</td>
+            </tr>
+            <tr>
+                <td>Status</td>
+                <td>Final</td>
+            </tr>
+            <tr>
+                <td>Classification</td>
+                <td>Confidential</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="toc">
+        <h2>Table of Contents</h2>
+        <ul>
+            <li><a href="#executive-summary">1. Executive Summary</a></li>
+            <li><a href="#requirements-overview">2. Requirements Overview</a></li>
+            <li><a href="#authentication-requirements">3. Authentication & Authorization Requirements</a></li>
+            <li><a href="#material-management-requirements">4. Material Management Requirements</a></li>
+            <li><a href="#purchase-order-requirements">5. Purchase Order Management Requirements</a></li>
+            <li><a href="#inventory-requirements">6. Inventory Management Requirements</a></li>
+            <li><a href="#workflow-requirements">7. Workflow Management Requirements</a></li>
+            <li><a href="#reporting-requirements">8. Reporting Requirements</a></li>
+            <li><a href="#barcode-requirements">9. Barcode Management Requirements</a></li>
+            <li><a href="#non-functional-requirements">10. Non-Functional Requirements</a></li>
+        </ul>
+    </div>
+
+    <h1 id="executive-summary">1. Executive Summary</h1>
+    <p>This Functional Requirements Document (FRD) describes the functional requirements and implementation approach for the <strong>Aerospace Parts Material Management System</strong> developed by PickupBiz Software Pvt Ltd for ADS Innotech.</p>
+    
+    <p>The document provides a comprehensive view of:</p>
+    <ul>
+        <li><strong>Functional Requirements:</strong> Detailed requirements for each system module</li>
+        <li><strong>Approach Documents:</strong> Implementation approach for each activity</li>
+        <li><strong>Data Flow Diagrams:</strong> How requirements are fulfilled through system flows</li>
+        <li><strong>Architecture Diagrams:</strong> System architecture supporting the requirements</li>
+    </ul>
+
+    <h1 id="requirements-overview">2. Requirements Overview</h1>
+    <h2>2.1 Requirements Categories</h2>
+    <table>
+        <tr>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Priority</th>
+        </tr>
+        <tr>
+            <td><strong>Authentication & Authorization</strong></td>
+            <td>User authentication, role-based access control, security</td>
+            <td>Critical</td>
+        </tr>
+        <tr>
+            <td><strong>Material Management</strong></td>
+            <td>Material master data, categorization, specifications</td>
+            <td>Critical</td>
+        </tr>
+        <tr>
+            <td><strong>Purchase Order Management</strong></td>
+            <td>PO creation, approval workflows, GRN processing</td>
+            <td>Critical</td>
+        </tr>
+        <tr>
+            <td><strong>Inventory Management</strong></td>
+            <td>Inventory tracking, transactions, material instances</td>
+            <td>Critical</td>
+        </tr>
+        <tr>
+            <td><strong>Workflow Management</strong></td>
+            <td>Approval workflows, multi-step processes</td>
+            <td>High</td>
+        </tr>
+        <tr>
+            <td><strong>Reporting</strong></td>
+            <td>Report generation, export capabilities</td>
+            <td>High</td>
+        </tr>
+        <tr>
+            <td><strong>Barcode Management</strong></td>
+            <td>Barcode generation, scanning, traceability</td>
+            <td>High</td>
+        </tr>
+    </table>
+
+    <h2>2.2 Requirements Architecture</h2>
+    <div class="diagram-container">
+        <div class="mermaid">
+graph TB
+    subgraph "Requirements Layer"
+        FR[Functional Requirements]
+        NFR[Non-Functional Requirements]
+    end
+    
+    subgraph "Functional Requirements"
+        AUTH_REQ[Authentication Requirements]
+        MAT_REQ[Material Requirements]
+        PO_REQ[PO Requirements]
+        INV_REQ[Inventory Requirements]
+        WF_REQ[Workflow Requirements]
+        REP_REQ[Reporting Requirements]
+        BAR_REQ[Barcode Requirements]
+    end
+    
+    subgraph "Implementation Approach"
+        AUTH_APP[Auth Approach]
+        MAT_APP[Material Approach]
+        PO_APP[PO Approach]
+        INV_APP[Inventory Approach]
+        WF_APP[Workflow Approach]
+        REP_APP[Reporting Approach]
+        BAR_APP[Barcode Approach]
+    end
+    
+    subgraph "System Implementation"
+        AUTH_IMPL[Auth Module]
+        MAT_IMPL[Material Module]
+        PO_IMPL[PO Module]
+        INV_IMPL[Inventory Module]
+        WF_IMPL[Workflow Module]
+        REP_IMPL[Reporting Module]
+        BAR_IMPL[Barcode Module]
+    end
+    
+    FR --> AUTH_REQ
+    FR --> MAT_REQ
+    FR --> PO_REQ
+    FR --> INV_REQ
+    FR --> WF_REQ
+    FR --> REP_REQ
+    FR --> BAR_REQ
+    
+    AUTH_REQ --> AUTH_APP
+    MAT_REQ --> MAT_APP
+    PO_REQ --> PO_APP
+    INV_REQ --> INV_APP
+    WF_REQ --> WF_APP
+    REP_REQ --> REP_APP
+    BAR_REQ --> BAR_APP
+    
+    AUTH_APP --> AUTH_IMPL
+    MAT_APP --> MAT_IMPL
+    PO_APP --> PO_IMPL
+    INV_APP --> INV_IMPL
+    WF_APP --> WF_IMPL
+    REP_APP --> REP_IMPL
+    BAR_APP --> BAR_IMPL
+    
+    NFR --> AUTH_IMPL
+    NFR --> MAT_IMPL
+    NFR --> PO_IMPL
+        </div>
+        <div class="diagram-caption">Figure 1: Requirements Architecture Overview</div>
+    </div>
+
+    <h1 id="authentication-requirements">3. Authentication & Authorization Requirements</h1>
+    <h2>3.1 Functional Requirements</h2>
+    
+    <div class="requirement-box">
+        <strong>REQ-AUTH-001:</strong> System shall provide secure user authentication using email and password credentials.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-AUTH-002:</strong> System shall generate JWT access tokens with 90-minute expiry and refresh tokens with 7-day expiry.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-AUTH-003:</strong> System shall implement role-based access control (RBAC) with 9 distinct user roles.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-AUTH-004:</strong> System shall log all login attempts for security auditing purposes.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-AUTH-005:</strong> System shall support password change functionality with current password verification.
+    </div>
+
+    <h2>3.2 Approach Document: Authentication Activity</h2>
+    <div class="approach-box">
+        <h4>Implementation Approach</h4>
+        <p><strong>Technology:</strong> JWT (JSON Web Tokens) with PyJWT library, bcrypt for password hashing</p>
+        <p><strong>Architecture:</strong> Stateless authentication using JWT tokens stored client-side</p>
+        <p><strong>Security Measures:</strong></p>
+        <ul>
+            <li>Passwords hashed using bcrypt with salt rounds</li>
+            <li>JWT tokens signed with HS256 algorithm</li>
+            <li>Token validation on every protected endpoint</li>
+            <li>Login attempt logging in database</li>
+        </ul>
+        <p><strong>Flow:</strong> User credentials → Password verification → Token generation → Token storage → Request authentication</p>
+    </div>
+
+    <h2>3.3 Authentication Data Flow</h2>
+    <div class="diagram-container">
+        <div class="mermaid">
+sequenceDiagram
+    participant User
+    participant Client
+    participant API as FastAPI API
+    participant Auth as Auth Service
+    participant DB as Database
+    
+    Note over User,DB: Login Process
+    User->>Client: Enter Email & Password
+    Client->>API: POST /api/v1/auth/login
+    API->>Auth: Validate Credentials
+    Auth->>DB: Query User by Email
+    DB-->>Auth: User Record
+    Auth->>Auth: Verify Password (bcrypt)
+    alt Password Valid
+        Auth->>Auth: Generate JWT Tokens
+        Auth->>DB: Log Login Attempt (Success)
+        Auth-->>API: Access Token + Refresh Token
+        API-->>Client: Return Tokens
+        Client->>Client: Store Tokens
+    else Password Invalid
+        Auth->>DB: Log Login Attempt (Failed)
+        Auth-->>API: 401 Unauthorized
+        API-->>Client: Error Response
+    end
+    
+    Note over User,DB: Authenticated Request
+    Client->>API: API Request + Authorization Header
+    API->>Auth: Extract & Validate Token
+    Auth->>Auth: Decode JWT Token
+    Auth->>Auth: Check Token Expiry
+    Auth->>Auth: Extract User Role
+    alt Token Valid
+        Auth-->>API: User Context + Role
+        API->>API: Process Request
+        API-->>Client: Response Data
+    else Token Invalid/Expired
+        Auth-->>API: 401 Unauthorized
+        API-->>Client: Error Response
+    end
+        </div>
+        <div class="diagram-caption">Figure 2: Authentication Data Flow</div>
+    </div>
+
+    <h2>3.4 Role-Based Access Control Architecture</h2>
+    <div class="diagram-container">
+        <div class="mermaid">
+graph TD
+    USER[User Request] --> TOKEN{Token Valid?}
+    TOKEN -->|No| REJECT[401 Unauthorized]
+    TOKEN -->|Yes| EXTRACT[Extract User Role]
+    EXTRACT --> CHECK{Check Role<br/>Permissions}
+    
+    CHECK -->|Director| ALLOW_ALL[Allow All Operations]
+    CHECK -->|Head of Ops| OPS_OPS[Operations Operations]
+    CHECK -->|Purchase| PO_OPS[PO Operations]
+    CHECK -->|Store| INV_OPS[Inventory Operations]
+    CHECK -->|QA| QA_OPS[QA Operations]
+    CHECK -->|Engineer| ENG_OPS[Engineering Operations]
+    CHECK -->|Technician| TECH_OPS[Technician Operations]
+    CHECK -->|Viewer| READ_ONLY[Read-Only Access]
+    
+    ALLOW_ALL --> PROCESS[Process Request]
+    OPS_OPS --> PROCESS
+    PO_OPS --> PROCESS
+    INV_OPS --> PROCESS
+    QA_OPS --> PROCESS
+    ENG_OPS --> PROCESS
+    TECH_OPS --> PROCESS
+    READ_ONLY --> PROCESS
+    
+    PROCESS --> RESPONSE[Return Response]
+        </div>
+        <div class="diagram-caption">Figure 3: Role-Based Access Control Architecture</div>
+    </div>
+
+    <h1 id="material-management-requirements">4. Material Management Requirements</h1>
+    <h2>4.1 Functional Requirements</h2>
+    
+    <div class="requirement-box">
+        <strong>REQ-MAT-001:</strong> System shall allow creation of material master records with item number, title, specification, and physical properties.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-MAT-002:</strong> System shall enforce unique item numbers across all materials.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-MAT-003:</strong> System shall support material categorization with hierarchical category structure.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-MAT-004:</strong> System shall track material types: Raw Material, WIP (Work in Progress), and Finished Goods.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-MAT-005:</strong> System shall support material search by title, item number, or specification.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-MAT-006:</strong> System shall track minimum and maximum stock levels for inventory management.
+    </div>
+
+    <h2>4.2 Approach Document: Material Management Activity</h2>
+    <div class="approach-box">
+        <h4>Implementation Approach</h4>
+        <p><strong>Data Model:</strong> Material entity with relationships to Category, Supplier, Purchase Order, and Project</p>
+        <p><strong>API Design:</strong> RESTful endpoints for CRUD operations with pagination and filtering</p>
+        <p><strong>Validation:</strong> Pydantic schemas for request/response validation</p>
+        <p><strong>Business Rules:</strong></p>
+        <ul>
+            <li>Item number uniqueness enforced at database level</li>
+            <li>Category hierarchy maintained through parent-child relationships</li>
+            <li>Material status tracking (Active, Inactive, Obsolete)</li>
+            <li>Stock level alerts when below minimum threshold</li>
+        </ul>
+        <p><strong>Access Control:</strong> Engineer role required for create/update/delete, any role for read</p>
+    </div>
+
+    <h2>4.3 Material Management Data Flow</h2>
+    <div class="diagram-container">
+        <div class="mermaid">
+flowchart TD
+    START([User Creates Material]) --> VALIDATE{Validate<br/>Input Data}
+    VALIDATE -->|Invalid| ERROR[Return Validation Error]
+    VALIDATE -->|Valid| CHECK_UNIQUE{Check Item Number<br/>Uniqueness}
+    
+    CHECK_UNIQUE -->|Exists| DUPLICATE[Return Duplicate Error]
+    CHECK_UNIQUE -->|Unique| CREATE[Create Material Record]
+    
+    CREATE --> LINK_CATEGORY{Link to<br/>Category?}
+    LINK_CATEGORY -->|Yes| VALIDATE_CAT{Category<br/>Exists?}
+    LINK_CATEGORY -->|No| SET_DEFAULTS[Set Default Values]
+    
+    VALIDATE_CAT -->|No| CAT_ERROR[Return Category Error]
+    VALIDATE_CAT -->|Yes| LINK[Link Material to Category]
+    
+    LINK --> SET_DEFAULTS
+    SET_DEFAULTS --> SAVE[Save to Database]
+    SAVE --> SUCCESS([Material Created Successfully])
+    
+    SUCCESS --> ALERT{Stock Level<br/>Below Minimum?}
+    ALERT -->|Yes| GENERATE_ALERT[Generate Low Stock Alert]
+    ALERT -->|No| END([End])
+    GENERATE_ALERT --> END
+        </div>
+        <div class="diagram-caption">Figure 4: Material Creation Data Flow</div>
+    </div>
+
+    <h1 id="purchase-order-requirements">5. Purchase Order Management Requirements</h1>
+    <h2>5.1 Functional Requirements</h2>
+    
+    <div class="requirement-box">
+        <strong>REQ-PO-001:</strong> System shall allow creation of purchase orders with supplier, line items, and expected delivery date.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-PO-002:</strong> System shall support multi-level approval workflow based on PO value thresholds.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-PO-003:</strong> System shall auto-approve POs below $5,000 threshold.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-PO-004:</strong> System shall require Head of Operations approval for POs between $5,000 and $25,000.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-PO-005:</strong> System shall require Director approval for POs above $100,000.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-PO-006:</strong> System shall support Goods Receipt Note (GRN) creation upon material receipt.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-PO-007:</strong> System shall track PO status through lifecycle: Draft → Submitted → Approved → Ordered → Received → Completed.
+    </div>
+
+    <h2>5.2 Approach Document: Purchase Order Management Activity</h2>
+    <div class="approach-box">
+        <h4>Implementation Approach</h4>
+        <p><strong>Workflow Engine:</strong> Configurable workflow templates with role-based routing</p>
+        <p><strong>Approval Logic:</strong> Value-based threshold checking with automatic routing</p>
+        <p><strong>Status Management:</strong> State machine pattern for PO status transitions</p>
+        <p><strong>GRN Processing:</strong> Integration with inventory module for material receipt</p>
+        <p><strong>Business Rules:</strong></p>
+        <ul>
+            <li>PO can only be modified in Draft status</li>
+            <li>Approval required before sending to supplier</li>
+            <li>GRN creation triggers material instance creation</li>
+            <li>Quantity received tracked against quantity ordered</li>
+            <li>Approval history maintained for audit trail</li>
+        </ul>
+        <p><strong>Notifications:</strong> Real-time WebSocket notifications for status changes</p>
+    </div>
+
+    <h2>5.3 Purchase Order Workflow Data Flow</h2>
+    <div class="diagram-container">
+        <div class="mermaid">
+flowchart TD
+    START([Purchase User Creates PO]) --> CREATE[Create PO<br/>Status: Draft]
+    CREATE --> ADD_ITEMS[Add Line Items]
+    ADD_ITEMS --> CALCULATE[Calculate Total Value]
+    CALCULATE --> SUBMIT{Submit for<br/>Approval?}
+    
+    SUBMIT -->|No| DRAFT[Keep as Draft]
+    SUBMIT -->|Yes| CHECK_VALUE{Check PO Value}
+    
+    CHECK_VALUE -->|&lt; $5,000| AUTO_APPROVE[Auto Approve<br/>Status: Approved]
+    CHECK_VALUE -->|$5K - $25K| STANDARD[Route to Head of Ops<br/>Status: Pending Approval]
+    CHECK_VALUE -->|$25K - $100K| HIGH_VALUE[Route to Head of Ops<br/>Status: Pending Approval]
+    CHECK_VALUE -->|&gt; $100K| DIRECTOR[Route to Director<br/>Status: Pending Approval]
+    
+    STANDARD --> APPROVE_CHECK{Approved?}
+    HIGH_VALUE --> APPROVE_CHECK
+    DIRECTOR --> APPROVE_CHECK
+    
+    APPROVE_CHECK -->|Yes| APPROVED[Status: Approved]
+    APPROVE_CHECK -->|No| REJECTED[Status: Rejected]
+    
+    AUTO_APPROVE --> ORDER[Send to Supplier<br/>Status: Ordered]
+    APPROVED --> ORDER
+    
+    ORDER --> RECEIVE[Receive Materials<br/>Create GRN]
+    RECEIVE --> INSPECT[QA Inspection<br/>Status: Inspecting]
+    INSPECT --> ACCEPT{Accepted?}
+    
+    ACCEPT -->|Yes| ACCEPTED[Status: Accepted]
+    ACCEPT -->|No| REJECTED_GRN[Status: Rejected]
+    
+    ACCEPTED --> CREATE_INSTANCES[Create Material Instances]
+    CREATE_INSTANCES --> GENERATE_BARCODES[Generate Barcodes]
+    GENERATE_BARCODES --> UPDATE_INVENTORY[Update Inventory]
+    UPDATE_INVENTORY --> COMPLETE([Status: Completed])
+        </div>
+        <div class="diagram-caption">Figure 5: Purchase Order Workflow Data Flow</div>
+    </div>
+
+    <h2>5.4 Approval Workflow Architecture</h2>
+    <div class="diagram-container">
+        <div class="mermaid">
+graph LR
+    PO[Purchase Order] --> VALUE{Calculate<br/>Total Value}
+    VALUE -->|&lt; $5K| AUTO[Auto Approve]
+    VALUE -->|$5K-$25K| HOO[Head of Ops<br/>Approval]
+    VALUE -->|$25K-$100K| HOO
+    VALUE -->|&gt; $100K| DIR[Director<br/>Approval]
+    
+    AUTO --> ORDER[Order Status]
+    HOO --> DECISION{Decision}
+    DIR --> DECISION
+    
+    DECISION -->|Approve| ORDER
+    DECISION -->|Reject| REJECT[Rejected Status]
+    
+    ORDER --> SUPPLIER[Send to Supplier]
+    SUPPLIER --> RECEIVE[Receive Materials]
+    RECEIVE --> GRN[Create GRN]
+    GRN --> QA[QA Inspection]
+    QA --> ACCEPT{Accept?}
+    ACCEPT -->|Yes| INVENTORY[Update Inventory]
+    ACCEPT -->|No| REJECT_GRN[Reject GRN]
+        </div>
+        <div class="diagram-caption">Figure 6: Approval Workflow Architecture</div>
+    </div>
+
+    <h1 id="inventory-requirements">6. Inventory Management Requirements</h1>
+    <h2>6.1 Functional Requirements</h2>
+    
+    <div class="requirement-box">
+        <strong>REQ-INV-001:</strong> System shall track individual material instances with lot/batch numbers for full traceability.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-INV-002:</strong> System shall record all inventory transactions (Receive, Issue, Return, Adjust, Transfer).
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-INV-003:</strong> System shall support material allocation to projects/work orders.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-INV-004:</strong> System shall maintain complete transaction history for each material instance.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-INV-005:</strong> System shall track material instance status: Available, Reserved, Allocated, Consumed.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-INV-006:</strong> System shall support bulk material receipt from GRN.
+    </div>
+
+    <h2>6.2 Approach Document: Inventory Management Activity</h2>
+    <div class="approach-box">
+        <h4>Implementation Approach</h4>
+        <p><strong>Traceability Model:</strong> Material instances linked to PO, GRN, and project for complete chain</p>
+        <p><strong>Transaction Logging:</strong> Immutable transaction records for audit compliance</p>
+        <p><strong>Status Lifecycle:</strong> State machine for material instance status transitions</p>
+        <p><strong>Allocation System:</strong> Reserve materials for projects before consumption</p>
+        <p><strong>Business Rules:</strong></p>
+        <ul>
+            <li>Material instances created from GRN acceptance</li>
+            <li>Each instance gets unique barcode for tracking</li>
+            <li>Transactions cannot be deleted, only reversed</li>
+            <li>Allocation prevents double-booking of materials</li>
+            <li>Consumption updates project material consumption tracking</li>
+        </ul>
+        <p><strong>Integration:</strong> Tight integration with PO, GRN, and barcode modules</p>
+    </div>
+
+    <h2>6.3 Inventory Transaction Data Flow</h2>
+    <div class="diagram-container">
+        <div class="mermaid">
+sequenceDiagram
+    participant User
+    participant API
+    participant Inventory as Inventory Service
+    participant Transaction as Transaction Service
+    participant DB as Database
+    
+    Note over User,DB: Material Receipt Flow
+    User->>API: Receive from GRN
+    API->>Inventory: Process Receipt
+    Inventory->>DB: Create Material Instances
+    Inventory->>Transaction: Create Receive Transaction
+    Transaction->>DB: Log Transaction
+    Transaction->>DB: Update Inventory Status
+    Transaction-->>Inventory: Transaction Recorded
+    Inventory-->>API: Receipt Complete
+    API-->>User: Success Response
+    
+    Note over User,DB: Material Allocation Flow
+    User->>API: Allocate to Project
+    API->>Inventory: Check Availability
+    Inventory->>DB: Query Available Instances
+    DB-->>Inventory: Available Materials
+    Inventory->>Inventory: Reserve Materials
+    Inventory->>Transaction: Create Allocation Transaction
+    Transaction->>DB: Log Transaction
+    Transaction->>DB: Update Status to Allocated
+    Transaction-->>Inventory: Allocation Complete
+    Inventory-->>API: Allocation Success
+    API-->>User: Allocation Confirmed
+    
+    Note over User,DB: Material Issue Flow
+    User->>API: Issue to Project
+    API->>Inventory: Issue Allocated Material
+    Inventory->>Transaction: Create Issue Transaction
+    Transaction->>DB: Log Transaction
+    Transaction->>DB: Update Status to Consumed
+    Transaction->>DB: Update Project Consumption
+    Transaction-->>Inventory: Issue Complete
+    Inventory-->>API: Issue Success
+    API-->>User: Issue Confirmed
+        </div>
+        <div class="diagram-caption">Figure 7: Inventory Transaction Data Flow</div>
+    </div>
+
+    <h1 id="workflow-requirements">7. Workflow Management Requirements</h1>
+    <h2>7.1 Functional Requirements</h2>
+    
+    <div class="requirement-box">
+        <strong>REQ-WF-001:</strong> System shall support configurable multi-step approval workflows.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-WF-002:</strong> System shall route approvals based on user roles and PO value.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-WF-003:</strong> System shall maintain complete approval history for audit purposes.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-WF-004:</strong> System shall support workflow rejection with comments.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-WF-005:</strong> System shall notify approvers of pending approvals via real-time updates.
+    </div>
+
+    <h2>7.2 Approach Document: Workflow Management Activity</h2>
+    <div class="approach-box">
+        <h4>Implementation Approach</h4>
+        <p><strong>Workflow Engine:</strong> Template-based workflow system with configurable steps</p>
+        <p><strong>Routing Logic:</strong> Role-based routing with value threshold checks</p>
+        <p><strong>State Management:</strong> Workflow instance tracking with current step identification</p>
+        <p><strong>Approval Tracking:</strong> Immutable approval history records</p>
+        <p><strong>Business Rules:</strong></p>
+        <ul>
+            <li>Workflow templates define step sequence and approvers</li>
+            <li>Workflow instances created for each PO submission</li>
+            <li>Parallel approvals supported for same-level approvers</li>
+            <li>Rejection stops workflow and requires resubmission</li>
+            <li>All approvals logged with timestamp and user</li>
+        </ul>
+        <p><strong>Notifications:</strong> WebSocket notifications for approval requests and status changes</p>
+    </div>
+
+    <h2>7.3 Workflow Execution Data Flow</h2>
+    <div class="diagram-container">
+        <div class="mermaid">
+flowchart TD
+    SUBMIT[Submit PO for Approval] --> CREATE_WF[Create Workflow Instance]
+    CREATE_WF --> LOAD_TEMPLATE[Load Workflow Template]
+    LOAD_TEMPLATE --> CHECK_VALUE{Check PO Value}
+    
+    CHECK_VALUE -->|&lt; $5K| SKIP[Skip Approval<br/>Auto Approve]
+    CHECK_VALUE -->|$5K-$25K| STEP1[Step 1: Head of Ops]
+    CHECK_VALUE -->|$25K-$100K| STEP1
+    CHECK_VALUE -->|&gt; $100K| STEP1_DIR[Step 1: Director]
+    
+    STEP1 --> NOTIFY1[Notify Approver]
+    STEP1_DIR --> NOTIFY1_DIR[Notify Director]
+    
+    NOTIFY1 --> WAIT1[Wait for Approval]
+    NOTIFY1_DIR --> WAIT1_DIR[Wait for Director Approval]
+    
+    WAIT1 --> DECISION1{Approved?}
+    WAIT1_DIR --> DECISION1_DIR{Approved?}
+    
+    DECISION1 -->|No| REJECT[Reject Workflow]
+    DECISION1_DIR -->|No| REJECT
+    
+    DECISION1 -->|Yes| CHECK_NEXT{More Steps?}
+    DECISION1_DIR -->|Yes| CHECK_NEXT
+    
+    CHECK_NEXT -->|Yes| STEP2[Next Step]
+    CHECK_NEXT -->|No| COMPLETE[Workflow Complete]
+    
+    STEP2 --> NOTIFY2[Notify Next Approver]
+    NOTIFY2 --> WAIT2[Wait for Approval]
+    WAIT2 --> DECISION2{Approved?}
+    DECISION2 -->|No| REJECT
+    DECISION2 -->|Yes| COMPLETE
+    
+    SKIP --> COMPLETE
+    COMPLETE --> APPROVE_PO[Approve PO]
+    REJECT --> REJECT_PO[Reject PO]
+        </div>
+        <div class="diagram-caption">Figure 8: Workflow Execution Data Flow</div>
+    </div>
+
+    <h1 id="reporting-requirements">8. Reporting Requirements</h1>
+    <h2>8.1 Functional Requirements</h2>
+    
+    <div class="requirement-box">
+        <strong>REQ-REP-001:</strong> System shall generate purchase order reports in PDF, Excel, and CSV formats.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-REP-002:</strong> System shall generate material inventory reports with current stock levels.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-REP-003:</strong> System shall generate supplier performance reports with delivery metrics.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-REP-004:</strong> System shall support date range filtering for all reports.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-REP-005:</strong> System shall provide quick CSV export for data analysis.
+    </div>
+
+    <h2>8.2 Approach Document: Reporting Activity</h2>
+    <div class="approach-box">
+        <h4>Implementation Approach</h4>
+        <p><strong>Report Generation:</strong> Template-based report generation with data aggregation</p>
+        <p><strong>Format Support:</strong> PDF (ReportLab), Excel (openpyxl), CSV (built-in)</p>
+        <p><strong>Data Aggregation:</strong> Complex queries with joins for comprehensive reports</p>
+        <p><strong>Performance:</strong> Async report generation for large datasets</p>
+        <p><strong>Business Rules:</strong></p>
+        <ul>
+            <li>Reports generated on-demand with filtering options</li>
+            <li>PDF reports include charts and formatted tables</li>
+            <li>Excel reports support multiple sheets for different data views</li>
+            <li>CSV exports for quick data analysis in external tools</li>
+            <li>Report files stored temporarily for download</li>
+        </ul>
+        <p><strong>Access Control:</strong> Role-based access to different report types</p>
+    </div>
+
+    <h2>8.3 Report Generation Data Flow</h2>
+    <div class="diagram-container">
+        <div class="mermaid">
+flowchart LR
+    REQUEST[User Requests Report] --> VALIDATE{Validate<br/>Parameters}
+    VALIDATE -->|Invalid| ERROR[Return Error]
+    VALIDATE -->|Valid| QUERY[Query Database]
+    
+    QUERY --> AGGREGATE[Aggregate Data]
+    AGGREGATE --> FORMAT{Select Format}
+    
+    FORMAT -->|PDF| PDF_GEN[Generate PDF<br/>ReportLab]
+    FORMAT -->|Excel| EXCEL_GEN[Generate Excel<br/>openpyxl]
+    FORMAT -->|CSV| CSV_GEN[Generate CSV<br/>Built-in]
+    
+    PDF_GEN --> STORE[Store Report File]
+    EXCEL_GEN --> STORE
+    CSV_GEN --> STORE
+    
+    STORE --> RETURN[Return Download URL]
+    RETURN --> DOWNLOAD[User Downloads Report]
+        </div>
+        <div class="diagram-caption">Figure 9: Report Generation Data Flow</div>
+    </div>
+
+    <h1 id="barcode-requirements">9. Barcode Management Requirements</h1>
+    <h2>9.1 Functional Requirements</h2>
+    
+    <div class="requirement-box">
+        <strong>REQ-BAR-001:</strong> System shall generate barcodes (Code128, QR Code) for material instances.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-BAR-002:</strong> System shall support configurable barcode templates with pattern matching.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-BAR-003:</strong> System shall process barcode scans and validate format.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-BAR-004:</strong> System shall maintain complete traceability chain from barcode lookup.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-BAR-005:</strong> System shall support scan-to-receive functionality for material receipt.
+    </div>
+    
+    <div class="requirement-box">
+        <strong>REQ-BAR-006:</strong> System shall log all barcode scan events with timestamp and location.
+    </div>
+
+    <h2>9.2 Approach Document: Barcode Management Activity</h2>
+    <div class="approach-box">
+        <h4>Implementation Approach</h4>
+        <p><strong>Barcode Generation:</strong> Python libraries (qrcode, barcode) for image generation</p>
+        <p><strong>Template System:</strong> Pattern-based barcode generation with variable substitution</p>
+        <p><strong>Validation:</strong> Format validation and pattern matching for scanned barcodes</p>
+        <p><strong>Traceability:</strong> Reverse lookup from barcode to material instance and full chain</p>
+        <p><strong>Business Rules:</strong></p>
+        <ul>
+            <li>Barcodes generated automatically when material instances created</li>
+            <li>Template patterns support PO number, date, sequence, material ID</li>
+            <li>QR codes for complex data, Code128 for simple identifiers</li>
+            <li>Scan events trigger material status updates</li>
+            <li>Traceability chain includes PO → GRN → Instance → Allocations → Consumption</li>
+        </ul>
+        <p><strong>Integration:</strong> Tight integration with material instance and inventory modules</p>
+    </div>
+
+    <h2>9.3 Barcode Lifecycle Data Flow</h2>
+    <div class="diagram-container">
+        <div class="mermaid">
+flowchart TD
+    CREATE_INSTANCE[Create Material Instance] --> SELECT_TEMPLATE{Select Barcode<br/>Template}
+    SELECT_TEMPLATE --> RAW[Raw Material Template]
+    SELECT_TEMPLATE --> WIP[WIP Template]
+    SELECT_TEMPLATE --> FINISHED[Finished Goods Template]
+    
+    RAW --> GENERATE[Generate Barcode Value]
+    WIP --> GENERATE
+    FINISHED --> GENERATE
+    
+    GENERATE --> CREATE_BARCODE[Create Barcode Record]
+    CREATE_BARCODE --> GEN_IMAGE[Generate Barcode Image]
+    GEN_IMAGE --> STORE[Store Barcode Data]
+    
+    STORE --> SCAN_EVENT[User Scans Barcode]
+    SCAN_EVENT --> VALIDATE{Validate<br/>Barcode}
+    
+    VALIDATE -->|Invalid| ERROR[Return Error]
+    VALIDATE -->|Valid| LOOKUP[Lookup Material Instance]
+    
+    LOOKUP --> TRACE[Get Traceability Chain]
+    TRACE --> UPDATE_STATUS{Update<br/>Status?}
+    
+    UPDATE_STATUS -->|Yes| CHANGE_STATUS[Change Material Status]
+    UPDATE_STATUS -->|No| DISPLAY[Display Information]
+    
+    CHANGE_STATUS --> LOG_SCAN[Log Scan Event]
+    DISPLAY --> LOG_SCAN
+    LOG_SCAN --> RESPONSE[Return Response]
+        </div>
+        <div class="diagram-caption">Figure 10: Barcode Lifecycle Data Flow</div>
+    </div>
+
+    <h1 id="non-functional-requirements">10. Non-Functional Requirements</h1>
+    <h2>10.1 Performance Requirements</h2>
+    <table>
+        <tr>
+            <th>Requirement ID</th>
+            <th>Description</th>
+            <th>Target</th>
+        </tr>
+        <tr>
+            <td><strong>NFR-PERF-001</strong></td>
+            <td>API response time</td>
+            <td>&lt; 500ms for 95% of requests</td>
+        </tr>
+        <tr>
+            <td><strong>NFR-PERF-002</strong></td>
+            <td>Concurrent users</td>
+            <td>Minimum 50 concurrent users</td>
+        </tr>
+        <tr>
+            <td><strong>NFR-PERF-003</strong></td>
+            <td>Database query performance</td>
+            <td>&lt; 200ms for standard queries</td>
+        </tr>
+        <tr>
+            <td><strong>NFR-PERF-004</strong></td>
+            <td>Report generation time</td>
+            <td>&lt; 30 seconds for standard reports</td>
+        </tr>
+    </table>
+
+    <h2>10.2 Security Requirements</h2>
+    <table>
+        <tr>
+            <th>Requirement ID</th>
+            <th>Description</th>
+            <th>Implementation</th>
+        </tr>
+        <tr>
+            <td><strong>NFR-SEC-001</strong></td>
+            <td>Password encryption</td>
+            <td>bcrypt hashing with salt</td>
+        </tr>
+        <tr>
+            <td><strong>NFR-SEC-002</strong></td>
+            <td>Token security</td>
+            <td>JWT with expiration and refresh mechanism</td>
+        </tr>
+        <tr>
+            <td><strong>NFR-SEC-003</strong></td>
+            <td>SQL injection prevention</td>
+            <td>SQLAlchemy ORM with parameterized queries</td>
+        </tr>
+        <tr>
+            <td><strong>NFR-SEC-004</strong></td>
+            <td>Audit logging</td>
+            <td>All critical operations logged</td>
+        </tr>
+    </table>
+
+    <h2>10.3 Scalability Requirements</h2>
+    <table>
+        <tr>
+            <th>Requirement ID</th>
+            <th>Description</th>
+            <th>Approach</th>
+        </tr>
+        <tr>
+            <td><strong>NFR-SCAL-001</strong></td>
+            <td>Horizontal scaling</td>
+            <td>Stateless API design, load balancing</td>
+        </tr>
+        <tr>
+            <td><strong>NFR-SCAL-002</strong></td>
+            <td>Database scaling</td>
+            <td>Read replicas, connection pooling</td>
+        </tr>
+        <tr>
+            <td><strong>NFR-SCAL-003</strong></td>
+            <td>Async operations</td>
+            <td>FastAPI async/await, async database drivers</td>
+        </tr>
+    </table>
+
+    <div class="footer">
+        <p><strong>Prepared By:</strong> PickupBiz Software Pvt Ltd</p>
+        <p><strong>For:</strong> ADS Innotech</p>
+        <p><strong>Version:</strong> 1.0.0 | <strong>Date:</strong> January 25, 2026</p>
+        <p><em>This document is confidential and proprietary to ADS Innotech. Unauthorized distribution is prohibited.</em></p>
+    </div>
+
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            },
+            sequence: {
+                diagramMarginX: 50,
+                diagramMarginY: 10,
+                actorMargin: 50,
+                width: 150,
+                height: 65,
+                boxMargin: 10,
+                boxTextMargin: 5,
+                noteMargin: 10,
+                messageMargin: 35
+            }
+        });
+    </script>
+</body>
+</html>

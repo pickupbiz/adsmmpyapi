@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Technical Architecture Document v1.0.0 - ADS Innotech</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <style>
+        @media print {
+            @page {
+                size: A4;
+                margin: 2cm;
+            }
+            body {
+                font-size: 11pt;
+            }
+            h1, h2 {
+                page-break-after: avoid;
+            }
+            .diagram-container {
+                page-break-inside: avoid;
+            }
+        }
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            font-size: 12pt;
+            line-height: 1.6;
+            color: #333;
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 4px solid #0066cc;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #0066cc;
+            margin: 0;
+            font-size: 24pt;
+        }
+        .header .subtitle {
+            color: #666;
+            font-size: 14pt;
+            margin-top: 10px;
+        }
+        .document-info {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-left: 4px solid #0066cc;
+            margin-bottom: 30px;
+        }
+        .document-info table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .document-info td {
+            padding: 5px 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .document-info td:first-child {
+            font-weight: bold;
+            width: 30%;
+        }
+        h1 {
+            color: #1a1a1a;
+            border-bottom: 3px solid #0066cc;
+            padding-bottom: 10px;
+            margin-top: 40px;
+            page-break-after: avoid;
+        }
+        h2 {
+            color: #0066cc;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 5px;
+            margin-top: 30px;
+            page-break-after: avoid;
+        }
+        h3 {
+            color: #333;
+            margin-top: 20px;
+            font-size: 14pt;
+        }
+        h4 {
+            color: #555;
+            margin-top: 15px;
+            font-size: 12pt;
+        }
+        .diagram-container {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            page-break-inside: avoid;
+        }
+        .diagram-container .mermaid {
+            background-color: white;
+        }
+        .diagram-caption {
+            margin-top: 10px;
+            font-style: italic;
+            color: #666;
+            font-size: 10pt;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 15px 0;
+            page-break-inside: avoid;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #0066cc;
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            border-left: 4px solid #0066cc;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 30px;
+        }
+        li {
+            margin: 8px 0;
+        }
+        .highlight-box {
+            background-color: #e8f4f8;
+            border-left: 4px solid #0066cc;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #ddd;
+            text-align: center;
+            color: #666;
+            font-size: 10pt;
+        }
+        .toc {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .toc ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .toc li {
+            margin: 8px 0;
+        }
+        .toc a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        .toc a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>TECHNICAL ARCHITECTURE DOCUMENT</h1>
+        <div class="subtitle">Aerospace Parts Material Management System</div>
+    </div>
+
+    <div class="document-info">
+        <table>
+            <tr>
+                <td>Document Title</td>
+                <td>Technical Architecture Document - Solution Architecture</td>
+            </tr>
+            <tr>
+                <td>Version</td>
+                <td>1.0.0</td>
+            </tr>
+            <tr>
+                <td>Date</td>
+                <td>January 25, 2026</td>
+            </tr>
+            <tr>
+                <td>Prepared By</td>
+                <td>PickupBiz Software Pvt Ltd</td>
+            </tr>
+            <tr>
+                <td>Prepared For</td>
+                <td>ADS Innotech</td>
+            </tr>
+            <tr>
+                <td>Status</td>
+                <td>Final</td>
+            </tr>
+            <tr>
+                <td>Classification</td>
+                <td>Confidential</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="toc">
+        <h2>Table of Contents</h2>
+        <ul>
+            <li><a href="#executive-summary">1. Executive Summary</a></li>
+            <li><a href="#solution-overview">2. Solution Overview</a></li>
+            <li><a href="#system-architecture">3. System Architecture</a></li>
+            <li><a href="#component-architecture">4. Component Architecture</a></li>
+            <li><a href="#data-flow">5. Data Flow Architecture</a></li>
+            <li><a href="#technology-stack">6. Technology Stack</a></li>
+            <li><a href="#deployment-architecture">7. Deployment Architecture</a></li>
+            <li><a href="#security-architecture">8. Security Architecture</a></li>
+            <li><a href="#integration-architecture">9. Integration Architecture</a></li>
+            <li><a href="#scalability">10. Scalability & Performance</a></li>
+        </ul>
+    </div>
+
+    <h1 id="executive-summary">1. Executive Summary</h1>
+    <p>This Technical Architecture Document describes the solution architecture for the <strong>Aerospace Parts Material Management System</strong> developed by PickupBiz Software Pvt Ltd for ADS Innotech. The document focuses on the high-level system design, component interactions, data flows, and technology decisions that form the foundation of the solution.</p>
+    
+    <p>The system is built as a modern, scalable, RESTful API-based architecture using FastAPI (Python) with PostgreSQL database, designed to support real-time material tracking, procurement workflows, and comprehensive reporting capabilities required for aerospace industry compliance.</p>
+
+    <h1 id="solution-overview">2. Solution Overview</h1>
+    <h2>2.1 Solution Architecture Principles</h2>
+    <ul>
+        <li><strong>RESTful API Design:</strong> Stateless, resource-based API following REST principles</li>
+        <li><strong>Microservices-Ready:</strong> Modular architecture allowing future service decomposition</li>
+        <li><strong>Scalability:</strong> Horizontal scaling capability with async operations</li>
+        <li><strong>Security-First:</strong> JWT authentication, RBAC, and comprehensive audit logging</li>
+        <li><strong>Real-time Capabilities:</strong> WebSocket support for live updates</li>
+        <li><strong>Database-Driven:</strong> ACID-compliant PostgreSQL for data integrity</li>
+    </ul>
+
+    <h2>2.2 High-Level Solution Architecture</h2>
+    <div class="diagram-container">
+        <div class="mermaid">
+graph TB
+    subgraph "Client Layer"
+        WEB[Web Browser<br/>React Application]
+        MOBILE[Mobile App<br/>Future]
+        API_CLIENT[API Clients<br/>Third-party]
+    end
+    
+    subgraph "API Gateway Layer"
+        API[FastAPI Application<br/>REST API + WebSocket]
+        AUTH[Authentication<br/>JWT Service]
+        CORS[CORS Middleware]
+    end
+    
+    subgraph "Business Logic Layer"
+        AUTH_MODULE[Authentication Module]
+        MATERIAL_MODULE[Material Management]
+        PO_MODULE[Purchase Order Module]
+        INVENTORY_MODULE[Inventory Module]
+        WORKFLOW_MODULE[Workflow Engine]
+        REPORT_MODULE[Reporting Module]
+        BARCODE_MODULE[Barcode Service]
+    end
+    
+    subgraph "Data Layer"
+        DB[(PostgreSQL Database<br/>Primary Data Store)]
+        CACHE[Cache Layer<br/>Future Redis]
+    end
+    
+    subgraph "External Services"
+        EMAIL[Email Service<br/>SMTP]
+        FILE_STORAGE[File Storage<br/>Reports]
+    end
+    
+    WEB -->|HTTPS| API
+    MOBILE -->|HTTPS| API
+    API_CLIENT -->|HTTPS| API
+    
+    API --> AUTH
+    API --> CORS
+    API --> AUTH_MODULE
+    API --> MATERIAL_MODULE
+    API --> PO_MODULE
+    API --> INVENTORY_MODULE
+    API --> WORKFLOW_MODULE
+    API --> REPORT_MODULE
+    API --> BARCODE_MODULE
+    
+    AUTH_MODULE --> DB
+    MATERIAL_MODULE --> DB
+    PO_MODULE --> DB
+    INVENTORY_MODULE --> DB
+    WORKFLOW_MODULE --> DB
+    REPORT_MODULE --> DB
+    BARCODE_MODULE --> DB
+    
+    REPORT_MODULE --> FILE_STORAGE
+    WORKFLOW_MODULE --> EMAIL
+    
+    DB -.->|Future| CACHE
+        </div>
+        <div class="diagram-caption">Figure 1: High-Level Solution Architecture</div>
+    </div>
+
+    <h1 id="system-architecture">3. System Architecture</h1>
+    <h2>3.1 Layered Architecture</h2>
+    <p>The system follows a layered architecture pattern with clear separation of concerns:</p>
+    
+    <div class="diagram-container">
+        <div class="mermaid">
+graph TD
+    subgraph "Presentation Layer"
+        REST_API[REST API Endpoints]
+        WS_API[WebSocket Endpoints]
+        DOCS[API Documentation<br/>Swagger/ReDoc]
+    end
+    
+    subgraph "Application Layer"
+        ROUTERS[API Routers]
+        DEPENDENCIES[Dependencies<br/>Auth, Pagination]
+        MIDDLEWARE[Middleware<br/>CORS, Logging]
+    end
+    
+    subgraph "Business Logic Layer"
+        ENDPOINTS[Endpoint Handlers]
+        SERVICES[Business Services]
+        VALIDATORS[Validators<br/>Pydantic Schemas]
+    end
+    
+    subgraph "Data Access Layer"
+        ORM[SQLAlchemy ORM]
+        MODELS[Data Models]
+        MIGRATIONS[Alembic Migrations]
+    end
+    
+    subgraph "Data Storage Layer"
+        POSTGRES[(PostgreSQL<br/>Database)]
+    end
+    
+    REST_API --> ROUTERS
+    WS_API --> ROUTERS
+    DOCS --> ROUTERS
+    
+    ROUTERS --> DEPENDENCIES
+    ROUTERS --> MIDDLEWARE
+    ROUTERS --> ENDPOINTS
+    
+    ENDPOINTS --> SERVICES
+    ENDPOINTS --> VALIDATORS
+    
+    SERVICES --> ORM
+    VALIDATORS --> MODELS
+    
+    ORM --> MODELS
+    MODELS --> POSTGRES
+    MIGRATIONS --> POSTGRES
+        </div>
+        <div class="diagram-caption">Figure 2: Layered System Architecture</div>
+    </div>
+
+    <h2>3.2 Module Organization</h2>
+    <table>
+        <tr>
+            <th>Layer</th>
+            <th>Components</th>
+            <th>Responsibility</th>
+        </tr>
+        <tr>
+            <td><strong>API Layer</strong></td>
+            <td>Routers, Endpoints, Dependencies</td>
+            <td>Request handling, routing, authentication</td>
+        </tr>
+        <tr>
+            <td><strong>Business Logic</strong></td>
+            <td>Services, Validators, Workflows</td>
+            <td>Business rules, validation, workflow execution</td>
+        </tr>
+        <tr>
+            <td><strong>Data Access</strong></td>
+            <td>ORM, Models, Repositories</td>
+            <td>Database operations, data mapping</td>
+        </tr>
+        <tr>
+            <td><strong>Infrastructure</strong></td>
+            <td>Config, Security, Utilities</td>
+            <td>Configuration, security, shared utilities</td>
+        </tr>
+    </table>
+
+    <h1 id="component-architecture">4. Component Architecture</h1>
+    <h2>4.1 Core Components</h2>
+    <div class="diagram-container">
+        <div class="mermaid">
+graph LR
+    subgraph "Core Application"
+        MAIN[Main Application<br/>FastAPI App]
+        CONFIG[Configuration<br/>Settings]
+        SECURITY[Security<br/>JWT, Hashing]
+    end
+    
+    subgraph "API Components"
+        AUTH_API[Auth API<br/>Login, Token]
+        MATERIAL_API[Material API]
+        PO_API[PO API]
+        INVENTORY_API[Inventory API]
+        SUPPLIER_API[Supplier API]
+        CERT_API[Certification API]
+        BARCODE_API[Barcode API]
+        DASHBOARD_API[Dashboard API]
+        REPORT_API[Report API]
+    end
+    
+    subgraph "Business Components"
+        WORKFLOW[Workflow Engine]
+        NOTIFICATION[Notification Service]
+        ALERT[Alert Service]
+        REPORT_GEN[Report Generator]
+        BARCODE_GEN[Barcode Generator]
+    end
+    
+    subgraph "Data Components"
+        DB_SESSION[Database Session]
+        MODELS[Data Models]
+        MIGRATIONS[Migration Engine]
+    end
+    
+    MAIN --> CONFIG
+    MAIN --> SECURITY
+    MAIN --> AUTH_API
+    MAIN --> MATERIAL_API
+    MAIN --> PO_API
+    MAIN --> INVENTORY_API
+    MAIN --> SUPPLIER_API
+    MAIN --> CERT_API
+    MAIN --> BARCODE_API
+    MAIN --> DASHBOARD_API
+    MAIN --> REPORT_API
+    
+    PO_API --> WORKFLOW
+    MATERIAL_API --> ALERT
+    INVENTORY_API --> NOTIFICATION
+    REPORT_API --> REPORT_GEN
+    BARCODE_API --> BARCODE_GEN
+    
+    AUTH_API --> DB_SESSION
+    MATERIAL_API --> DB_SESSION
+    PO_API --> DB_SESSION
+    INVENTORY_API --> DB_SESSION
+    
+    DB_SESSION --> MODELS
+    MIGRATIONS --> MODELS
+        </div>
+        <div class="diagram-caption">Figure 3: Component Architecture</div>
+    </div>
+
+    <h2>4.2 Component Responsibilities</h2>
+    <table>
+        <tr>
+            <th>Component</th>
+            <th>Responsibility</th>
+            <th>Key Features</th>
+        </tr>
+        <tr>
+            <td><strong>Authentication API</strong></td>
+            <td>User authentication and authorization</td>
+            <td>JWT tokens, login history, password management</td>
+        </tr>
+        <tr>
+            <td><strong>Material API</strong></td>
+            <td>Material master data management</td>
+            <td>CRUD operations, categorization, search</td>
+        </tr>
+        <tr>
+            <td><strong>Purchase Order API</strong></td>
+            <td>PO lifecycle management</td>
+            <td>Creation, approval workflow, GRN processing</td>
+        </tr>
+        <tr>
+            <td><strong>Inventory API</strong></td>
+            <td>Inventory tracking and transactions</td>
+            <td>Material instances, allocations, transactions</td>
+        </tr>
+        <tr>
+            <td><strong>Workflow Engine</strong></td>
+            <td>Approval workflow management</td>
+            <td>Multi-step approvals, role-based routing</td>
+        </tr>
+        <tr>
+            <td><strong>Barcode Service</strong></td>
+            <td>Barcode generation and scanning</td>
+            <td>QR codes, Code128, traceability</td>
+        </tr>
+        <tr>
+            <td><strong>Report Generator</strong></td>
+            <td>Report generation and export</td>
+            <td>PDF, Excel, CSV formats</td>
+        </tr>
+    </table>
+
+    <h1 id="data-flow">5. Data Flow Architecture</h1>
+    <h2>5.1 Request Flow</h2>
+    <div class="diagram-container">
+        <div class="mermaid">
+sequenceDiagram
+    participant Client
+    participant API as FastAPI App
+    participant Auth as Auth Middleware
+    participant Router as API Router
+    participant Handler as Endpoint Handler
+    participant Service as Business Service
+    participant ORM as SQLAlchemy ORM
+    participant DB as PostgreSQL
+    
+    Client->>API: HTTP Request
+    API->>Auth: Validate Token
+    Auth-->>API: Token Valid/Invalid
+    alt Token Valid
+        API->>Router: Route Request
+        Router->>Handler: Invoke Endpoint
+        Handler->>Service: Business Logic
+        Service->>ORM: Database Query
+        ORM->>DB: SQL Query
+        DB-->>ORM: Result Set
+        ORM-->>Service: Model Objects
+        Service-->>Handler: Business Objects
+        Handler->>Handler: Validate Response
+        Handler-->>Router: Response Data
+        Router-->>API: JSON Response
+        API-->>Client: HTTP 200 + JSON
+    else Token Invalid
+        API-->>Client: HTTP 401 Unauthorized
+    end
+        </div>
+        <div class="diagram-caption">Figure 4: Request Flow Sequence Diagram</div>
+    </div>
+
+    <h2>5.2 Purchase Order Workflow Data Flow</h2>
+    <div class="diagram-container">
+        <div class="mermaid">
+flowchart TD
+    START([Purchase User<br/>Creates PO]) --> CREATE[Create PO<br/>Status: Draft]
+    CREATE --> ADD_ITEMS[Add Line Items]
+    ADD_ITEMS --> SUBMIT{Submit<br/>for Approval?}
+    
+    SUBMIT -->|Yes| CHECK_VALUE{Check<br/>PO Value}
+    CHECK_VALUE -->|&lt; $5K| AUTO_APPROVE[Auto Approve]
+    CHECK_VALUE -->|$5K-$25K| STANDARD_APPROVAL[Standard Approval<br/>Head of Ops]
+    CHECK_VALUE -->|$25K-$100K| HIGH_VALUE[High Value Approval<br/>Head of Ops]
+    CHECK_VALUE -->|&gt; $100K| DIRECTOR_APPROVAL[Director Approval]
+    
+    AUTO_APPROVE --> ORDER[Send to Supplier<br/>Status: Ordered]
+    STANDARD_APPROVAL --> APPROVE_CHECK{Approved?}
+    HIGH_VALUE --> APPROVE_CHECK
+    DIRECTOR_APPROVAL --> APPROVE_CHECK
+    
+    APPROVE_CHECK -->|Yes| ORDER
+    APPROVE_CHECK -->|No| REJECTED[Status: Rejected]
+    
+    ORDER --> RECEIVE[Receive Materials<br/>Create GRN]
+    RECEIVE --> INSPECT[QA Inspection]
+    INSPECT --> ACCEPT{Accepted?}
+    ACCEPT -->|Yes| ACCEPTED[Status: Accepted]
+    ACCEPT -->|No| REJECTED_GRN[Status: Rejected]
+    
+    ACCEPTED --> CREATE_INSTANCES[Create Material Instances]
+    CREATE_INSTANCES --> GENERATE_BARCODES[Generate Barcodes]
+    GENERATE_BARCODES --> UPDATE_INVENTORY[Update Inventory]
+    UPDATE_INVENTORY --> COMPLETE([Status: Completed])
+    
+    REJECTED --> END([End])
+    REJECTED_GRN --> END
+        </div>
+        <div class="diagram-caption">Figure 5: Purchase Order Workflow Data Flow</div>
+    </div>
+
+    <h2>5.3 Material Lifecycle Data Flow</h2>
+    <div class="diagram-container">
+        <div class="mermaid">
+flowchart LR
+    subgraph "Material Lifecycle"
+        PO[Purchase Order] -->|Receive| GRN[Goods Receipt Note]
+        GRN -->|Inspect| QA[QA Inspection]
+        QA -->|Accept| INSTANCE[Material Instance]
+        INSTANCE -->|Allocate| ALLOCATION[Material Allocation]
+        ALLOCATION -->|Issue| PROJECT[Project/Work Order]
+        PROJECT -->|Consume| CONSUMED[Consumed Status]
+        CONSUMED -->|Return| RETURNED[Returned to Inventory]
+    end
+    
+    subgraph "Tracking"
+        INSTANCE -.->|Barcode| SCAN[Scan Events]
+        SCAN -.->|History| TRACE[Traceability Chain]
+    end
+    
+    subgraph "Inventory"
+        INSTANCE --> STOCK[Stock Level]
+        ALLOCATION --> RESERVED[Reserved Stock]
+        RETURNED --> STOCK
+    end
+        </div>
+        <div class="diagram-caption">Figure 6: Material Lifecycle Data Flow</div>
+    </div>
+
+    <h2>5.4 Real-time Update Flow</h2>
+    <div class="diagram-container">
+        <div class="mermaid">
+sequenceDiagram
+    participant Client
+    participant WS as WebSocket Server
+    participant Service as Business Service
+    participant DB as Database
+    participant Notify as Notification Manager
+    
+    Client->>WS: WebSocket Connect<br/>with JWT Token
+    WS->>WS: Authenticate Token
+    WS-->>Client: Connection Established
+    
+    Note over Service,DB: Business Event Occurs
+    Service->>DB: Update Database
+    Service->>Notify: Publish Event
+    Notify->>WS: Broadcast Update
+    WS-->>Client: Real-time Notification
+    
+    Client->>WS: Subscribe to Entity
+    WS->>Notify: Register Subscription
+    Notify->>WS: Entity Updates
+    WS-->>Client: Targeted Updates
+        </div>
+        <div class="diagram-caption">Figure 7: Real-time Update Flow via WebSocket</div>
+    </div>
+
+    <h1 id="technology-stack">6. Technology Stack</h1>
+    <h2>6.1 Backend Technology</h2>
+    <table>
+        <tr>
+            <th>Category</th>
+            <th>Technology</th>
+            <th>Version</th>
+            <th>Purpose</th>
+        </tr>
+        <tr>
+            <td><strong>Framework</strong></td>
+            <td>FastAPI</td>
+            <td>0.109.2</td>
+            <td>Modern Python web framework with async support</td>
+        </tr>
+        <tr>
+            <td><strong>Server</strong></td>
+            <td>Uvicorn</td>
+            <td>0.27.1</td>
+            <td>ASGI server for FastAPI</td>
+        </tr>
+        <tr>
+            <td><strong>Database</strong></td>
+            <td>PostgreSQL</td>
+            <td>13+</td>
+            <td>Primary relational database</td>
+        </tr>
+        <tr>
+            <td><strong>ORM</strong></td>
+            <td>SQLAlchemy</td>
+            <td>2.0.25</td>
+            <td>Database ORM with async support</td>
+        </tr>
+        <tr>
+            <td><strong>Migrations</strong></td>
+            <td>Alembic</td>
+            <td>1.13.1</td>
+            <td>Database schema versioning</td>
+        </tr>
+        <tr>
+            <td><strong>Authentication</strong></td>
+            <td>PyJWT</td>
+            <td>3.3.0</td>
+            <td>JWT token generation and validation</td>
+        </tr>
+        <tr>
+            <td><strong>Password Hashing</strong></td>
+            <td>bcrypt</td>
+            <td>4.1.2</td>
+            <td>Secure password hashing</td>
+        </tr>
+        <tr>
+            <td><strong>Validation</strong></td>
+            <td>Pydantic</td>
+            <td>2.6.1</td>
+            <td>Data validation and settings management</td>
+        </tr>
+        <tr>
+            <td><strong>Language</strong></td>
+            <td>Python</td>
+            <td>3.10+</td>
+            <td>Programming language</td>
+        </tr>
+    </table>
+
+    <h2>6.2 Architecture Patterns</h2>
+    <ul>
+        <li><strong>Layered Architecture:</strong> Clear separation between API, business logic, and data layers</li>
+        <li><strong>Repository Pattern:</strong> Data access abstraction through ORM</li>
+        <li><strong>Dependency Injection:</strong> FastAPI's dependency system for loose coupling</li>
+        <li><strong>RESTful Design:</strong> Resource-based API endpoints</li>
+        <li><strong>Async/Await:</strong> Asynchronous operations for better performance</li>
+    </ul>
+
+    <h1 id="deployment-architecture">7. Deployment Architecture</h1>
+    <h2>7.1 Deployment Topology</h2>
+    <div class="diagram-container">
+        <div class="mermaid">
+graph TB
+    subgraph "Load Balancer Layer"
+        LB[Load Balancer<br/>Nginx/HAProxy]
+    end
+    
+    subgraph "Application Layer"
+        APP1[FastAPI Instance 1<br/>Port 5055]
+        APP2[FastAPI Instance 2<br/>Port 5056]
+        APP3[FastAPI Instance N<br/>Port 5057]
+    end
+    
+    subgraph "Database Layer"
+        PRIMARY[(PostgreSQL Primary<br/>Master)]
+        REPLICA[(PostgreSQL Replica<br/>Read Replica)]
+    end
+    
+    subgraph "Storage Layer"
+        FILES[File Storage<br/>Reports, Documents]
+    end
+    
+    subgraph "Monitoring"
+        MONITOR[Monitoring<br/>Prometheus/Grafana]
+        LOGS[Log Aggregation<br/>ELK Stack]
+    end
+    
+    LB --> APP1
+    LB --> APP2
+    LB --> APP3
+    
+    APP1 --> PRIMARY
+    APP2 --> PRIMARY
+    APP3 --> PRIMARY
+    
+    APP1 -.->|Read Queries| REPLICA
+    APP2 -.->|Read Queries| REPLICA
+    APP3 -.->|Read Queries| REPLICA
+    
+    APP1 --> FILES
+    APP2 --> FILES
+    APP3 --> FILES
+    
+    APP1 --> MONITOR
+    APP2 --> MONITOR
+    APP3 --> MONITOR
+    
+    APP1 --> LOGS
+    APP2 --> LOGS
+    APP3 --> LOGS
+        </div>
+        <div class="diagram-caption">Figure 8: Deployment Architecture</div>
+    </div>
+
+    <h2>7.2 Deployment Components</h2>
+    <table>
+        <tr>
+            <th>Component</th>
+            <th>Technology</th>
+            <th>Purpose</th>
+        </tr>
+        <tr>
+            <td><strong>Web Server</strong></td>
+            <td>Uvicorn (ASGI)</td>
+            <td>Application server</td>
+        </tr>
+        <tr>
+            <td><strong>Reverse Proxy</strong></td>
+            <td>Nginx</td>
+            <td>Load balancing, SSL termination</td>
+        </tr>
+        <tr>
+            <td><strong>Database</strong></td>
+            <td>PostgreSQL</td>
+            <td>Primary data store with replication</td>
+        </tr>
+        <tr>
+            <td><strong>Process Manager</strong></td>
+            <td>Systemd/Supervisor</td>
+            <td>Process management and auto-restart</td>
+        </tr>
+        <tr>
+            <td><strong>Containerization</strong></td>
+            <td>Docker (Optional)</td>
+            <td>Containerized deployment</td>
+        </tr>
+    </table>
+
+    <h1 id="security-architecture">8. Security Architecture</h1>
+    <h2>8.1 Security Layers</h2>
+    <div class="diagram-container">
+        <div class="mermaid">
+graph TD
+    subgraph "Network Security"
+        HTTPS[HTTPS/TLS<br/>Encryption]
+        FIREWALL[Firewall<br/>Rules]
+    end
+    
+    subgraph "Application Security"
+        CORS[CORS Policy<br/>Origin Control]
+        AUTH[JWT Authentication]
+        RBAC[Role-Based<br/>Access Control]
+        VALIDATION[Input Validation<br/>Pydantic]
+    end
+    
+    subgraph "Data Security"
+        ENCRYPTION[Password Encryption<br/>bcrypt]
+        SQL_INJECTION[SQL Injection<br/>Prevention ORM]
+        AUDIT[Audit Logging<br/>All Actions]
+    end
+    
+    subgraph "Database Security"
+        DB_AUTH[Database<br/>Authentication]
+        CONNECTION[Encrypted<br/>Connections]
+        BACKUP[Encrypted<br/>Backups]
+    end
+    
+    HTTPS --> CORS
+    FIREWALL --> AUTH
+    AUTH --> RBAC
+    RBAC --> VALIDATION
+    VALIDATION --> ENCRYPTION
+    ENCRYPTION --> SQL_INJECTION
+    SQL_INJECTION --> AUDIT
+    AUDIT --> DB_AUTH
+    DB_AUTH --> CONNECTION
+    CONNECTION --> BACKUP
+        </div>
+        <div class="diagram-caption">Figure 9: Security Architecture Layers</div>
+    </div>
+
+    <h2>8.2 Authentication & Authorization Flow</h2>
+    <div class="diagram-container">
+        <div class="mermaid">
+sequenceDiagram
+    participant User
+    participant Client
+    participant API
+    participant Auth as Auth Service
+    participant DB
+    
+    User->>Client: Enter Credentials
+    Client->>API: POST /auth/login<br/>(username, password)
+    API->>Auth: Validate Credentials
+    Auth->>DB: Query User
+    DB-->>Auth: User Data
+    Auth->>Auth: Verify Password<br/>(bcrypt)
+    Auth->>Auth: Generate JWT Tokens<br/>(access + refresh)
+    Auth->>DB: Log Login Attempt
+    Auth-->>API: Tokens
+    API-->>Client: Return Tokens
+    
+    Note over Client: Store Tokens
+    
+    Client->>API: API Request<br/>+ Authorization Header
+    API->>Auth: Validate JWT Token
+    Auth->>Auth: Decode & Verify Token
+    Auth->>Auth: Extract User Role
+    Auth->>Auth: Check Permissions
+    Auth-->>API: Authorized/Unauthorized
+    alt Authorized
+        API->>API: Process Request
+        API-->>Client: Response Data
+    else Unauthorized
+        API-->>Client: 401/403 Error
+    end
+        </div>
+        <div class="diagram-caption">Figure 10: Authentication & Authorization Flow</div>
+    </div>
+
+    <h2>8.3 Security Features</h2>
+    <table>
+        <tr>
+            <th>Security Feature</th>
+            <th>Implementation</th>
+            <th>Protection</th>
+        </tr>
+        <tr>
+            <td><strong>Password Security</strong></td>
+            <td>bcrypt hashing</td>
+            <td>Secure password storage</td>
+        </tr>
+        <tr>
+            <td><strong>Token Security</strong></td>
+            <td>JWT with expiration</td>
+            <td>Session management</td>
+        </tr>
+        <tr>
+            <td><strong>SQL Injection</strong></td>
+            <td>SQLAlchemy ORM</td>
+            <td>Parameterized queries</td>
+        </tr>
+        <tr>
+            <td><strong>XSS Protection</strong></td>
+            <td>Input validation</td>
+            <td>Data sanitization</td>
+        </tr>
+        <tr>
+            <td><strong>CORS</strong></td>
+            <td>CORS middleware</td>
+            <td>Cross-origin request control</td>
+        </tr>
+        <tr>
+            <td><strong>Audit Trail</strong></td>
+            <td>Login history, audit logs</td>
+            <td>Security monitoring</td>
+        </tr>
+    </table>
+
+    <h1 id="integration-architecture">9. Integration Architecture</h1>
+    <h2>9.1 Integration Points</h2>
+    <div class="diagram-container">
+        <div class="mermaid">
+graph LR
+    subgraph "External Systems"
+        ERP[ERP System<br/>Future]
+        EMAIL_SYS[Email Service<br/>SMTP]
+        FILE_SYS[File Storage<br/>S3/Local]
+    end
+    
+    subgraph "API Gateway"
+        REST[REST API]
+        WS[WebSocket]
+    end
+    
+    subgraph "Internal Services"
+        AUTH_SVC[Auth Service]
+        MATERIAL_SVC[Material Service]
+        PO_SVC[PO Service]
+        REPORT_SVC[Report Service]
+    end
+    
+    ERP -.->|Future Integration| REST
+    REST --> AUTH_SVC
+    REST --> MATERIAL_SVC
+    REST --> PO_SVC
+    REST --> REPORT_SVC
+    
+    WS --> AUTH_SVC
+    WS --> PO_SVC
+    
+    PO_SVC --> EMAIL_SYS
+    REPORT_SVC --> FILE_SYS
+        </div>
+        <div class="diagram-caption">Figure 11: Integration Architecture</div>
+    </div>
+
+    <h2>9.2 API Integration Patterns</h2>
+    <ul>
+        <li><strong>RESTful API:</strong> Standard HTTP methods (GET, POST, PUT, DELETE)</li>
+        <li><strong>JSON Format:</strong> Request and response in JSON format</li>
+        <li><strong>WebSocket:</strong> Real-time bidirectional communication</li>
+        <li><strong>Pagination:</strong> Standard pagination for list endpoints</li>
+        <li><strong>Error Handling:</strong> Consistent error response format</li>
+    </ul>
+
+    <h1 id="scalability">10. Scalability & Performance</h1>
+    <h2>10.1 Scalability Strategy</h2>
+    <div class="diagram-container">
+        <div class="mermaid">
+graph TD
+    subgraph "Horizontal Scaling"
+        LB[Load Balancer]
+        APP1[App Instance 1]
+        APP2[App Instance 2]
+        APP3[App Instance N]
+    end
+    
+    subgraph "Database Scaling"
+        PRIMARY[(Primary DB)]
+        REPLICA1[(Read Replica 1)]
+        REPLICA2[(Read Replica 2)]
+    end
+    
+    subgraph "Caching Strategy"
+        CACHE[Redis Cache<br/>Future]
+        SESSION[Session Store]
+    end
+    
+    subgraph "Async Operations"
+        ASYNC[Async Tasks<br/>Background Jobs]
+        QUEUE[Task Queue<br/>Future Celery]
+    end
+    
+    LB --> APP1
+    LB --> APP2
+    LB --> APP3
+    
+    APP1 --> PRIMARY
+    APP2 --> PRIMARY
+    APP3 --> PRIMARY
+    
+    APP1 -.-> REPLICA1
+    APP2 -.-> REPLICA2
+    
+    APP1 --> CACHE
+    APP2 --> CACHE
+    APP3 --> CACHE
+    
+    APP1 --> ASYNC
+    ASYNC --> QUEUE
+        </div>
+        <div class="diagram-caption">Figure 12: Scalability Architecture</div>
+    </div>
+
+    <h2>10.2 Performance Optimizations</h2>
+    <table>
+        <tr>
+            <th>Optimization</th>
+            <th>Implementation</th>
+            <th>Benefit</th>
+        </tr>
+        <tr>
+            <td><strong>Async Operations</strong></td>
+            <td>SQLAlchemy async, FastAPI async</td>
+            <td>Non-blocking I/O operations</td>
+        </tr>
+        <tr>
+            <td><strong>Database Indexing</strong></td>
+            <td>Indexed columns on frequently queried fields</td>
+            <td>Faster query execution</td>
+        </tr>
+        <tr>
+            <td><strong>Pagination</strong></td>
+            <td>Limit/offset pagination on all list endpoints</td>
+            <td>Reduced data transfer</td>
+        </tr>
+        <tr>
+            <td><strong>Connection Pooling</strong></td>
+            <td>SQLAlchemy connection pool</td>
+            <td>Efficient database connections</td>
+        </tr>
+        <tr>
+            <td><strong>Lazy Loading</strong></td>
+            <td>ORM lazy loading relationships</td>
+            <td>On-demand data loading</td>
+        </tr>
+    </table>
+
+    <div class="highlight-box">
+        <h3>Future Scalability Enhancements</h3>
+        <ul>
+            <li><strong>Redis Caching:</strong> Cache frequently accessed data</li>
+            <li><strong>Read Replicas:</strong> Distribute read load</li>
+            <li><strong>Message Queue:</strong> Background job processing with Celery</li>
+            <li><strong>CDN:</strong> Content delivery for static assets</li>
+            <li><strong>Microservices:</strong> Service decomposition for independent scaling</li>
+        </ul>
+    </div>
+
+    <div class="footer">
+        <p><strong>Prepared By:</strong> PickupBiz Software Pvt Ltd</p>
+        <p><strong>For:</strong> ADS Innotech</p>
+        <p><strong>Version:</strong> 1.0.0 | <strong>Date:</strong> January 25, 2026</p>
+        <p><em>This document is confidential and proprietary to ADS Innotech. Unauthorized distribution is prohibited.</em></p>
+    </div>
+
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            },
+            sequence: {
+                diagramMarginX: 50,
+                diagramMarginY: 10,
+                actorMargin: 50,
+                width: 150,
+                height: 65,
+                boxMargin: 10,
+                boxTextMargin: 5,
+                noteMargin: 10,
+                messageMargin: 35
+            }
+        });
+    </script>
+</body>
+</html>
