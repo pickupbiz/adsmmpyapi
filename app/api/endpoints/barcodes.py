@@ -288,6 +288,10 @@ def create_barcode(
     barcode_data['barcode_value'] = barcode_value
     barcode_data['qr_data'] = qr_data
     barcode_data['status'] = BarcodeStatus.ACTIVE
+    # Ensure enum fields use model enums (schema may dump as strings)
+    barcode_data['entity_type'] = BarcodeEntityType(barcode_data['entity_type'].value if hasattr(barcode_data['entity_type'], 'value') else barcode_data['entity_type'])
+    barcode_data['traceability_stage'] = TraceabilityStage(barcode_data['traceability_stage'].value if hasattr(barcode_data['traceability_stage'], 'value') else barcode_data['traceability_stage'])
+    barcode_data['barcode_type'] = BarcodeType(barcode_data['barcode_type'].value if hasattr(barcode_data['barcode_type'], 'value') else barcode_data['barcode_type'])
     
     barcode = BarcodeLabel(**barcode_data)
     db.add(barcode)
@@ -465,8 +469,8 @@ def generate_barcode_from_po(
         po_number=po.po_number,
         po_line_item_id=po_line.id,
         material_id=material.id if material else 0,
-        material_part_number=material.part_number if material else "",
-        material_name=material.name if material else "",
+        material_part_number=material.item_number if material else "",
+        material_name=material.title if material else "",
         specification=po_line.specification or (material.specification if material else None),
         lot_number=request_data.lot_number or (grn_line.lot_number if grn_line else None),
         batch_number=request_data.batch_number or (grn_line.batch_number if grn_line else None),
@@ -493,8 +497,8 @@ def generate_barcode_from_po(
         po_number=po.po_number,
         grn_number=None,  # Will be set if GRN exists
         material_id=material.id if material else None,
-        material_part_number=material.part_number if material else None,
-        material_name=material.name if material else None,
+        material_part_number=material.item_number if material else None,
+        material_name=material.title if material else None,
         specification=po_line.specification,
         supplier_id=supplier.id if supplier else None,
         supplier_name=supplier.name if supplier else None,
