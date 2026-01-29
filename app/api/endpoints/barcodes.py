@@ -288,6 +288,10 @@ def create_barcode(
     barcode_data['barcode_value'] = barcode_value
     barcode_data['qr_data'] = qr_data
     barcode_data['status'] = BarcodeStatus.ACTIVE
+    # Ensure enum fields use model enums (schema may dump as strings)
+    barcode_data['entity_type'] = BarcodeEntityType(barcode_data['entity_type'].value if hasattr(barcode_data['entity_type'], 'value') else barcode_data['entity_type'])
+    barcode_data['traceability_stage'] = TraceabilityStage(barcode_data['traceability_stage'].value if hasattr(barcode_data['traceability_stage'], 'value') else barcode_data['traceability_stage'])
+    barcode_data['barcode_type'] = BarcodeType(barcode_data['barcode_type'].value if hasattr(barcode_data['barcode_type'], 'value') else barcode_data['barcode_type'])
     
     barcode = BarcodeLabel(**barcode_data)
     db.add(barcode)
