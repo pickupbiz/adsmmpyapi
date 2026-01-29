@@ -8,7 +8,10 @@ Provides:
 - Dashboard live data
 """
 import json
+import logging
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
 from typing import Optional
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, Query
 from sqlalchemy.orm import Session
@@ -66,7 +69,11 @@ async def websocket_endpoint(
     
     # Connect
     connection_id = await websocket_manager.connect(websocket, user_id, role)
-    
+    logger.info(
+        "WebSocket connected: connection_id=%s user_id=%s role=%s",
+        connection_id, user_id, role,
+    )
+
     try:
         # Send welcome message
         await websocket.send_json({
@@ -150,8 +157,10 @@ async def websocket_endpoint(
                 })
     
     except WebSocketDisconnect:
+        logger.info("WebSocket disconnected: connection_id=%s user_id=%s", connection_id, user_id)
         websocket_manager.disconnect(connection_id, user_id, role)
     except Exception as e:
+        logger.exception("WebSocket error: connection_id=%s user_id=%s", connection_id, user_id)
         websocket_manager.disconnect(connection_id, user_id, role)
 
 
