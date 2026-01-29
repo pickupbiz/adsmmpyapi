@@ -2373,6 +2373,7 @@ Material instances track individual materials through their full lifecycle, inte
 |--------|----------|-------------|---------------|
 | `GET` | `/barcodes` | List barcodes | Yes |
 | `GET` | `/barcodes/{id}` | Get barcode details | Yes |
+| `POST` | `/barcodes` | Create barcode label | Yes (Store+) |
 | `POST` | `/barcodes/generate` | Generate barcode | Yes (Store+) |
 | `POST` | `/barcodes/generate-from-po` | Generate from PO line item | Yes (Store+) |
 | `POST` | `/barcodes/scan` | Process barcode scan | Yes (Store+) |
