@@ -1,0 +1,57 @@
+name: Deploy ADSMMPYAPI to SERVER
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+
+      - name: Deploy to SERVER
+        env:
+          SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          SERVER_IP: ${{ secrets.SERVER_IP_DEV }}
+          SERVER_USER: ${{ secrets.SERVER_USER_GIT }}
+          SERVER_EMAIL: ${{ secrets.SERVER_EMAIL_GITHUB }}
+        run: |
+          echo "$SERVER_SSH_KEY" > key.pem
+          chmod 400 key.pem
+
+          ssh -o StrictHostKeyChecking=no -i key.pem $SERVER_USER@$SERVER_IP << EOF
+            set -e
+
+            git config --global user.name "$SERVER_USER"
+            git config --global user.email "$SERVER_EMAIL"
+
+            cd /home/ubuntu
+
+            if [ ! -d "adsmmpyapi" ]; then
+              git clone git@github.com:pickupbiz/adsmmpyapi.git
+            fi
+
+            cd adsmmpyapi
+            git pull origin master
+
+            python3 -m venv venv
+            source venv/bin/activate
+            pip install --upgrade pip
+            pip install -r requirements.txt
+
+            pm2 delete ADSMMPYAPI || true
+            pm2 start "uvicorn main:app --host 0.0.0.0 --port 5055" --name ADSMMPYAPI
+            pm2 save
+          EOF
+
+      - name: Cleanup
+        run: rm -f key.pem
