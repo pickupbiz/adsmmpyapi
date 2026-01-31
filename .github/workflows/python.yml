@@ -34,23 +34,27 @@ jobs:
             git config --global user.name "$SERVER_USER"
             git config --global user.email "$SERVER_EMAIL"
 
-            cd /home/ubuntu
+            cd /home/pickupbiz
 
             if [ ! -d "adsmmpyapi" ]; then
-              git clone git@github.com:pickupbiz/adsmmpyapi.git
+              git clone git@github.com:pickupbiz/adsmmpyapi.git adsmmpyapi
             fi
 
             cd adsmmpyapi
             git pull origin master
 
-            python3 -m venv venv
-            source venv/bin/activate
-            pip install --upgrade pip
-            pip install -r requirements.txt
+             # Install dependencies
+              python3 -m venv env
+              source env/bin/activate
+              python3 -m pip install --upgrade pip
+              pip3 install -r requirements.txt
 
-            pm2 delete ADSMMPYAPI || true
-            pm2 start "uvicorn main:app --host 0.0.0.0 --port 5055" --name ADSMMPYAPI
-            pm2 save
+               # Start or restart the app with PM2
+              if pm2 list | grep -q "ADSMMPYAPI"; then
+                pm2 restart ADSMMPYAPI
+              else
+                pm2 start "uvicorn main:app --host 0.0.0.0 --port 5055" --name "ADSMMPYAPI"
+              fi
           EOF
 
       - name: Cleanup
