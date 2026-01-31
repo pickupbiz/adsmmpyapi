@@ -232,7 +232,7 @@ def update_material(
     return material
 
 
-@router.delete("/{material_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{material_id}", status_code=status.HTTP_200_OK)
 def delete_material(
     material_id: int,
     db: Session = Depends(get_db),
@@ -248,3 +248,4 @@ def delete_material(
     
     db.delete(material)
     db.commit()
+    return {"message": "Material deleted successfully", "id": material_id}
