@@ -173,14 +173,19 @@ sudo systemctl status aerospace-api
 2. Check that `create_application()` includes: `docs_url=f"{settings.API_V1_PREFIX}/docs"`
 3. Ensure router is included: `app.include_router(api_router, prefix=settings.API_V1_PREFIX)`
 
-### Issue: CORS Errors
+### Issue: CORS Errors (e.g. "No 'Access-Control-Allow-Origin' header")
 
-**Cause:** CORS middleware not configured or wrong origins.
+**Cause:** Frontend origin not in `ALLOWED_ORIGINS`, or wrong API URL causing 404 (some proxies don’t add CORS headers on 404).
 
 **Solution:**
-1. Check `app/main.py` has CORS middleware added
-2. Verify `settings.ALLOWED_ORIGINS` includes your frontend domain
-3. For production, replace `["*"]` with specific domains
+1. **Use the correct API base URL:** All API routes are under `/api/v1`.  
+   - ✅ Login: `POST https://your-api.com/api/v1/auth/login`  
+   - ❌ Wrong: `POST https://your-api.com/api/auth/login` (missing `v1` → 404)
+2. Ensure the frontend base URL is `https://your-api.com/api/v1` (e.g. in axios baseURL or env).
+3. Add your frontend origin in `app/core/config.py` or via env:
+   - Default list includes `https://ads.pickupbiz.com` for production.
+   - To override: set env `ALLOWED_ORIGINS=https://ads.pickupbiz.com` (comma-separated for multiple).
+4. Restart the API after changing CORS so the new origins are applied.
 
 ### Issue: Database Connection Errors
 
