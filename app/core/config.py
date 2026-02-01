@@ -1,6 +1,7 @@
 """Application configuration settings."""
-from typing import List
+from typing import List, Union
 from pydantic_settings import BaseSettings
+from pydantic import field_validator
 from functools import lru_cache
 
 
@@ -32,13 +33,23 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 90  # 90 minutes token expiry
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
-    # CORS - Add all origins you need, use ["*"] for development
+    # CORS - Origins allowed to call the API (browser enforces this)
+    # In production set env: ALLOWED_ORIGINS=https://ads.pickupbiz.com (or comma-separated list)
     ALLOWED_ORIGINS: List[str] = [
         "http://localhost:3000",
         "http://localhost:8080",
         "http://localhost:5055",
         "http://127.0.0.1:5055",
+        "https://ads.pickupbiz.com",  # Production frontend
     ]
+
+    @field_validator("ALLOWED_ORIGINS", mode="before")
+    @classmethod
+    def parse_allowed_origins(cls, v: Union[str, List[str]]) -> Union[str, List[str]]:
+        """Allow ALLOWED_ORIGINS from env as comma-separated string."""
+        if isinstance(v, str):
+            return [x.strip() for x in v.split(",") if x.strip()]
+        return v
     
     # Pagination
     DEFAULT_PAGE_SIZE: int = 20
