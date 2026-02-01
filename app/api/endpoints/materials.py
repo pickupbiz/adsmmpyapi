@@ -91,7 +91,48 @@ def update_category(
 
 
 # Material endpoints
-@router.get("", response_model=PaginatedResponse[MaterialResponse])
+@router.get(
+    "/parts",
+    response_model=PaginatedResponse[MaterialResponse],
+    summary="List materials used in parts",
+    responses={
+        200: {"description": "Paginated list of materials that have BOM entries"},
+    },
+)
+def list_materials_used_in_parts(
+    pagination: PaginationParams = Depends(),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_any_role)
+):
+    """
+    List all materials that are used in parts (have BOM entries).
+    Supports pagination via `page` and `page_size` query parameters.
+    """
+    from app.models.part import PartMaterial
+    
+    # Get distinct material IDs that are used in parts
+    material_ids_subquery = db.query(PartMaterial.material_id).distinct().subquery()
+    
+    query = db.query(Material).filter(Material.id.in_(material_ids_subquery))
+    
+    total = query.count()
+    materials = query.offset(pagination.offset).limit(pagination.limit).all()
+    total_pages = (total + pagination.page_size - 1) // pagination.page_size
+    
+    return PaginatedResponse(
+        items=materials,
+        total=total,
+        page=pagination.page,
+        page_size=pagination.page_size,
+        total_pages=total_pages
+    )
+
+
+@router.get(
+    "",
+    response_model=PaginatedResponse[MaterialResponse],
+    summary="List materials",
+)
 def list_materials(
     pagination: PaginationParams = Depends(),
     material_type: Optional[MaterialType] = Query(None),
@@ -137,7 +178,12 @@ def list_materials(
     )
 
 
-@router.get("/{material_id}", response_model=MaterialResponse)
+@router.get(
+    "/{material_id}",
+    response_model=MaterialResponse,
+    summary="Get material by ID",
+    responses={404: {"description": "Material not found"}},
+)
 def get_material(
     material_id: int,
     db: Session = Depends(get_db),
@@ -232,18 +278,52 @@ def update_material(
     return material
 
 
-@router.delete("/{material_id}", status_code=status.HTTP_200_OK)
+@router.delete(
+    "/{material_id}",
+    status_code=status.HTTP_200_OK,
+    summary="Delete material",
+    responses={
+        200: {"description": "Material deleted successfully", "content": {"application/json": {"example": {"message": "Material deleted successfully", "id": 1}}}},
+        400: {"description": "Material cannot be deleted (referenced by PO line items, material instances, or order items)"},
+        404: {"description": "Material not found"},
+    },
+)
 def delete_material(
     material_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_engineer)
 ):
-    """Delete a material."""
+    """
+    Delete a material. Fails with 400 if the material is referenced by
+    purchase order line items, material instances, or order items.
+    """
     material = db.query(Material).filter(Material.id == material_id).first()
     if not material:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Material not found"
+        )
+    
+    # Check if material is referenced by any PO line items
+    if material.po_line_items:
+        po_numbers = [item.purchase_order.po_number for item in material.po_line_items if item.purchase_order]
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot delete material. It is referenced by {len(material.po_line_items)} purchase order line item(s) in PO(s): {', '.join(set(po_numbers))}"
+        )
+    
+    # Check if material has any material instances
+    if material.material_instances:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot delete material. It has {len(material.material_instances)} material instance(s) associated with it"
+        )
+    
+    # Check if material is used in any order items
+    if material.order_items:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot delete material. It is referenced by {len(material.order_items)} order item(s)"
         )
     
     db.delete(material)

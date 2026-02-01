@@ -680,6 +680,18 @@ GET /api/v1/materials?category_id=1
 
 ---
 
+### List Materials Used in Parts (BOM)
+Lists all materials that are used in parts (have Bill of Materials entries). Supports pagination.
+
+```
+GET /api/v1/materials/parts?page=1&page_size=20
+Authorization: Bearer <access_token>
+```
+
+**Response:** Same paginated structure as List Materials; `items` contains only materials that appear in at least one part's BOM.
+
+---
+
 ### Get Material by ID
 ```
 GET /api/v1/materials/1
@@ -862,6 +874,21 @@ Content-Type: application/json
 DELETE /api/v1/materials/1
 Authorization: Bearer <access_token>
 ```
+
+**Success (200 OK):**
+```json
+{
+  "message": "Material deleted successfully",
+  "id": 1
+}
+```
+
+**Error (400 Bad Request)** – Material cannot be deleted when referenced by:
+- Purchase order line items (e.g. `"Cannot delete material. It is referenced by 4 purchase order line item(s) in PO(s): PO-2026-001"`)
+- Material instances (e.g. `"Cannot delete material. It has 2 material instance(s) associated with it"`)
+- Order items (e.g. `"Cannot delete material. It is referenced by 1 order item(s)"`)
+
+**Error (404 Not Found):** Material not found.
 
 ---
 
@@ -2239,10 +2266,11 @@ pm.collectionVariables.set("refresh_token", jsonData.refresh_token);
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
 | `GET` | `/materials` | List materials | Yes |
+| `GET` | `/materials/parts` | List materials used in parts (BOM) | Yes |
 | `GET` | `/materials/{id}` | Get material by ID | Yes |
 | `POST` | `/materials` | Create material | Yes (Engineer+) |
 | `PUT` | `/materials/{id}` | Update material | Yes (Engineer+) |
-| `DELETE` | `/materials/{id}` | Delete material | Yes (Engineer+) |
+| `DELETE` | `/materials/{id}` | Delete material (200 with body; 400 if referenced) | Yes (Engineer+) |
 | `GET` | `/materials/categories` | List categories | Yes |
 | `POST` | `/materials/categories` | Create category | Yes (Engineer+) |
 | `PUT` | `/materials/categories/{id}` | Update category | Yes (Engineer+) |
